@@ -1,0 +1,108 @@
+pipeline {
+    agent {
+      label "master"
+    }
+    
+    environment {
+        COMPILE_NODE = "master"
+        BUILD_MANAGER = 'shreyank.ramachandra@aptiv.com nagarajan.kulandaivelu@delphi.com sadhana.turaga@aptiv.com sanjeev.desai@aptiv.com'
+        PROJECT_TECH_LEAD = 'shreyank.ramachandra@aptiv.com'
+        PLASTIC_PROJECT_NAME = '10031592_MY21_Ford_DAT_MRR_S'
+        JIRA_PROJECT_KEY = 'ASW'
+        PLASTIC_SERVER = 'plasticscm_prod1.delphiauto.net:8087'
+        PLASTIC_MAIN = "DAT2_MRR_Plastic_JIRA"
+        PLASTIC_WORKSPACE = "${env.WorkspacePath2Use}\\${PLASTIC_MAIN}"
+    	
+
+        COMPILE_PATH = "${PLASTIC_WORKSPACE}\\RR_ADAS\\Make"
+        CMD_CLEAN = "python Build_Script.py"
+        CMD_BUILD = "python Build_Script.py"
+        GLOBAL_TOOL_PATH = "PATH=C:\\Python27;c:\\perl64\\bin;C:\\Windows\\system32"
+        CLOC_PATH = "PATH=C:\\Program Files\\Cloc;C:\\Windows\\System32"
+        PLASTIC_PATH = "PATH=C:\\Program Files\\PlasticSCM5\\client;C:\\Windows\\system32"
+        COMMON_REPORT_GEN_PATH = "${PLASTIC_WORKSPACE}\\RR_Build_Tools\\Python_Lib\\"
+        PATH_TO_JSON = "${PLASTIC_WORKSPACE}\\RR_Build_Tools\\Python_Lib\\JSON_2_HTML\\Build_Warnings.json"
+
+    }
+    
+    stages {
+        stage("GetLatestCode"){
+            steps{
+                node("${COMPILE_NODE}"){
+                    ws(env.WorkspacePath2Use){
+                        script{
+                            if (fileExists("${PLASTIC_MAIN}\\.plastic\\plastic.workspace")){
+                                dir("${PLASTIC_MAIN}"){
+                                    withEnv(["${PLASTIC_PATH}"]){
+                                    bat "cm unco --all"
+                                    }
+                                }
+                            }
+                            cm branch:"${env.devBranch}",repository: "${PLASTIC_PROJECT_NAME}", server: "${PLASTIC_SERVER}",useUpdate: false, workspaceName: "${PLASTIC_MAIN}"
+
+                        }
+		            }
+                }
+            }
+        }
+        
+        stage("CodeCompilation"){
+            steps {
+                node("${COMPILE_NODE}") {
+                    ws("${PLASTIC_WORKSPACE}"){
+                        script{
+                            withEnv(["${CLOC_PATH}"]) {
+                                bat "cloc-1.58.exe  --by-file --xml --out=cloc.xml ./RR_ADAS"
+                                bat "xsltproc \"C:\\Program Files\\Cloc\\cloc2sloccount.xsl\" cloc.xml > sloccount.sc"
+                                sloccountPublish encoding: '', ignoreBuildFailure: true, pattern: 'sloccount.sc'
+                            }
+                            dir("${COMPILE_PATH}"){
+                                withEnv(["${LICENCE}", "${GLOBAL_TOOL_PATH}"]) {
+                                    try{
+                                        bat "${CMD_CLEAN} clean -all"
+                                        bat "${CMD_BUILD} build -all"
+                                        //Need to Check with sadhana for log file
+                                        //archiveArtifacts '**/*.xls'
+                                    }
+                                    catch(Exception e){
+                                        jql_var =  "${e}"
+                                        def res = jiraJqlSearch failOnError: false, jql: "description ~ \"${jql_var}\"" , maxResults: 10, site: 'Aptiv Jira', startAt: 300
+                                        if (res.data.total != 0){
+                                            println "not zero value issue alreaDY EXISTS "
+                                            bat'exit 0'
+                                        } 
+                                        else{
+                                            withEnv(['JIRA_SITE=Aptiv Jira']) {
+                        						def issueKey;
+                        						def issue = [fields:[ project: [key: "${JIRA_PROJECT_KEY}"],
+                                                                    summary:"Jenkins Compilation Failure : ${e}",
+                                                                    description: "Bug Created for Failure of Compilation in Project: ${PLASTIC_PROJECT_NAME} with error - (${e})",
+                                                                    "customfield_10140": ["id":"10118"],
+                                                                    issuetype: [name: 'Bug'],
+                                                                    ]
+                                                            ]
+                                                //def newIssue = jiraNewIssue issue: issue
+                                                //issueKey = newIssue.data.key
+                                                println "Compilation Failed : Created Jira Bug : ${issueKey} "
+                                                currentBuild.result = 'FALIURE'
+                                                bat 'exit -1'
+					                        }
+                                        }
+				                    }
+                                }
+                            }
+                        }
+				        stash includes: "Outputs\\**\\*, RR_ADAS\\**\\*", name: 'CompiledFiles'
+				        stash includes: 'RR_Build_Tools\\**\\*', name: 'Tools'
+				        stash includes: "RR_Build_Tools\\Python_Lib\\**\\*, RR_Build_Tools\\CAN_Tests\\**\\*, RR_Build_Tools\\Trace32_Tests\\**\\*, Instrumentation\\**\\* , Lauterbach\\**\\*", name: 'DownloadTools'
+				        dir("${COMMON_REPORT_GEN_PATH}\\JSON_2_HTML"){
+				            
+                        bat"python JSON_2_HTML.py -json ${PATH_TO_JSON}"
+                        archiveArtifacts '*.html'
+				        }
+                    }    
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,47 @@
+pipeline {
+	agent any 
+	stages {
+stage(‘Build’) {
+	steps {
+  script{
+      try{
+             
+             dir('C:\\example') 
+             {
+             //  def teIndia@1231st = bat returnStdout: true, script: "python test.py"
+             def test= 'No 780 new issues'
+               println test
+                def hasSummaryMatch = (test =~ /\d+/)
+                 
+               for (issuesfound in hasSummaryMatch)
+                    {
+                          println issuesfound
+                         int value = issuesfound.toInteger()
+                         println value
+                         if(value>0)
+                         {
+                             println 'test fail'
+                         }
+                         else 
+                         {
+                             println 'test pass'
+                         }
+
+                     }
+                     println 'No issues'
+            }
+        }
+        catch(Exception e)
+        {
+           println "issue is   "+ e 
+        }
+	    }
+	}
+	}
+	stage (‘Test’) {
+	steps {
+	     echo 'Test2'
+	}
+	}
+}
+}

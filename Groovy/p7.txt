@@ -1,0 +1,160 @@
+timeout(90){
+    node{
+        ws(env.Workspace2Use) {
+            PLASTIC_PROJECT_NAME = '10029627_MY19_FCA_IRCM_HOST'
+            JIRA_PROJECT_KEY = 'AEX'
+            PLASTIC_MAIN = "FCA_${env.VehicleModel}_Plastic"
+            PLASTIC_SERVER = 'plasticscm_prod1.delphiauto.net:8087'
+            BUILD_MANAGER = 'shreyank.ramachandra@delphi.com'
+
+            stage('CreateWorkspace') {
+                if (fileExists("${PLASTIC_MAIN}\\.plastic\\plastic.workspace")) {
+                    dir("${PLASTIC_MAIN}"){
+                        // Undo any pending Changes
+                        bat "cm unco --all"
+                    }
+                }
+                cm branch: "${env.ReleasingBranch}", changelog: true, poll: true, repository: "${PLASTIC_PROJECT_NAME}", server: "${PLASTIC_SERVER}", workspaceName: "${PLASTIC_MAIN}"
+
+            }
+            
+    
+            stage('Compile') {
+                dir("${PLASTIC_MAIN}\\Make_Files"){
+                    withEnv(['GHS_LMHOST=@DLBTCLPW1.NorthAmerica.DelphiAuto.net:2011']){
+                        try{
+                            boolean continuePipeline = true
+                            bat "python FCA_IRCM_Host_Build.py -bypass_report_gen -model %VehicleModel% build -cbuild"
+                            
+                        }catch(Exception e){
+                            println "Jira issue will be raising "+ e 
+                            continuePipeline = false
+                            currentBuild.result = 'FAILURE'
+                        }
+                    }
+                }
+                dir("${PLASTIC_MAIN}"){
+                    stash includes: "_Build\\${env.VehicleModel}\\Exe\\**\\*", name: 'ptp'
+                    stash includes: "Tools\\CANalyzer_Config\\**\\* , Tools\\CAPL_Scripts\\**\\* , Tools\\CubSuite_Plus_Project\\**\\* , Tools\\HexView\\**\\* , Tools\\PTP\\**\\* , Tools\\Python_Reuse_Scripts\\**\\* , Tools\\Python_Scripts\\**\\* , Tools\\Symbol_File_Generation\\**\\* , Make_Files\\**\\* , Tools\\Release_Versions\\${env.VehicleModel}\\**\\* , BSW\\Memory_Services\\NVM\\_inc\\**\\* , Application\\SPI_IPC_Manager\\_inc\\**\\* , CANGen_${env.VehicleModel}\\_inc\\**\\* , MTSA_MAK\\**\\* , CANGen_${env.VehicleModel}\\**\\* ", name: 'Tools'                }
+                //emailext body: 'ErrorFound!', subject: 'ErrorFound!', recipients: "${BUILD_MANAGER}"
+                //input message: 'Did you find?', parameters: [string(defaultValue: '', description: '', name: 'TestParameter', trim: true)]
+            }
+        }
+        
+    }
+    parallel (
+        "Run VectorCast":{
+            node(){
+                stage('VectorCast'){
+                    ws(env.Workspace2Use){
+                        try{
+                            dir("${PLASTIC_MAIN}\\Tools\\Python_Scripts\\Test_Run"){
+                                bat "whoami"
+                                bat "cd"
+                                bat "dir"
+                                bat "python test_run_tester.py -u sid_actsfy_sw -p Leejol33"
+                            }
+                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: ".\\${PLASTIC_MAIN}\\Tools\\Python_Scripts\\Test_Run\\", reportFiles: 'test_run_report.html', reportName: 'VectorCast_Report', reportTitles: ''])
+                            junit allowEmptyResults: true, testDataPublishers: [[$class: 'AttachmentPublisher']], testResults: "${PLASTIC_MAIN}/Tools/Python_Scripts/Test_Run/XML_reports/**/*.xml,"
+                        }catch(Exception e){
+                            println e
+                            continuePipeline = false
+                            currentBuild.result = 'FAILURE'
+                        }
+                    }
+                }
+            }
+        },
+        
+        "Running Coverity":{
+            node(){
+                cov_work = "${env.Workspace2Use}_Cov"
+                cov_plastic = "${PLASTIC_MAIN}_cov"
+                ws("${cov_work}"){
+                    stage('Coverity'){
+                        iDir = "${WORKSPACE}\\cov-idir"
+                        dir("${iDir}") {
+                            deleteDir()
+                        }
+                        if (fileExists("${cov_plastic}\\.plastic\\plastic.workspace")) {
+                            dir("${cov_plastic}"){
+                                bat "cm unco --all"
+                            }
+                        }
+                        cm branch: env.ReleasingBranch, changelog: true, poll: true, repository: "${PLASTIC_PROJECT_NAME}", server: "${PLASTIC_SERVER}", useUpdate: true, workspaceName: "${cov_plastic}"
+                        withCoverityEnv('default') {
+                            def covHome = tool name: 'default', type: 'coverity'
+                            // use a variable for the shared intermediate directory
+                            dir("${cov_plastic}\\Make_Files") {
+                                // run cov-build capture command
+                                bat "cov-build --dir \"${iDir}\" python FCA_IRCM_Host_Build.py -bypass_report_gen -model %VehicleModel% build -hbuild"
+                            }
+                            // run cov-analyze command
+                            bat "cov-analyze --dir \"${iDir}\" --security --concurrency --enable-fnptr --enable-virtual --enable-constraint-fpp --checker-option DEADCODE:no_dead_default:true -en ALLOC_FREE_MISMATCH --checker-option STACK_USE:max_total_use_bytes:6144 -en DC.STRING_BUFFER -en INCOMPATIBLE_CAST -en STACK_USE -en SYMBIAN.CLEANUP_STACK -en USER_POINTER -en DIVIDE_BY_ZERO --checker-option RESOURCE_LEAK:allow_main:true --strip-path /6_FCA/FCA_PIPE/FCA_PIPE --paths 50000"
+                        
+                            coverityResults connectInstance: 'Coverity8_7', connectView: 'Outstanding Defects', projectId: "${PLASTIC_PROJECT_NAME}", unstable: true
+                        }
+                    }
+                }
+            }
+        },
+        
+        "Run QAC":{
+            node(){
+                stage('QAC'){
+                    build job: 'QAC', propagate: true, wait: true, parameters: [[$class: 'StringParameterValue', name: 'VehicleModel', value: "${env.VehicleModel}"],
+                    [$class: 'StringParameterValue', name: 'Workspace2Use', value: "${env.Workspace2Use}"]]
+                }
+
+            }
+        },
+        
+        "Hardware Tests":{
+            node('FCA_ECU'){
+                ecu_work = "${env.Workspace2Use}_ECU"
+                PLASTIC_ECU = "${PLASTIC_MAIN}_ECU"
+                ws(ecu_work){
+                    boolean continuePipeline = true
+                    if (fileExists("${PLASTIC_ECU}\\.plastic\\plastic.workspace")) {
+                            dir("${PLASTIC_ECU}"){
+                                bat "cm unco --all"
+                            }
+                    }
+                    stage('Debugger Tests') {
+                        //cm branch: env.ReleasingBranch, changelog: true, poll: true, repository: "${PLASTIC_PROJECT_NAME}", server: "${PLASTIC_SERVER}", useUpdate: true, workspaceName: "${PLASTIC_ECU}"
+                        dir("${PLASTIC_ECU}"){
+                            unstash 'ptp'
+                            unstash 'Tools'
+                            dir("Tools\\Python_Scripts\\CS+"){
+                                bat "python change_config.py CS_Settings.ini run_forever 1"
+                            }
+                            dir("Tools\\Python_Scripts\\Integration_Check"){
+                                bat "python Integration_Ready_Check.py -model %VehicleModel% -a"
+                            }
+                            junit allowEmptyResults: true, testDataPublishers: [[$class: 'AttachmentPublisher']], testResults: "Tools/Python_Scripts/CS+/Reports/**/*.xml,"
+                            junit allowEmptyResults: true, testDataPublishers: [[$class: 'AttachmentPublisher']], testResults: "_Build/${env.VehicleModel}/Gen/**/*.xml,"
+                            //step([$class: 'PlotBuilder', csvFileName: 'plot-69080696.csv', exclZero: true, group: 'Statistics', keepRecords: true, logarithmic: false, numBuilds: '20', style: 'line', title: 'Usage Per Build', useDescr: false, xmlSeries: [[file: "_Build\\${env.VehicleModel}\\Gen\\Statistics_Report.html", nodeType: 'NODESET', url: '', xpath: '//PlotReport[1]/*']], yaxis: '', yaxisMaximum: '', yaxisMinimum: ''])
+                            plot csvFileName: 'plot-00438f1a-3d2e-4b74-b0f0-62bf3fc6b8f6.csv', exclZero: true, group: 'Statistics', keepRecords: false, logarithmic: false, numBuilds: '30', style: 'line', title: 'ECU Statistics', useDescr: false, xmlSeries: [[file: "_Build\\\\${env.VehicleModel}\\\\Gen\\\\Statistics_Report.html", nodeType: 'NODESET', url: '', xpath: '//PlotReport[1]/*']], yaxis: '', yaxisMaximum: '', yaxisMinimum: ''
+                        }
+                    }
+                    
+                    stage('CAN Tests') {
+                        dir("${PLASTIC_ECU}"){
+                            dir("Tools\\Python_Scripts\\CAN_Tests"){
+                                bat "python Run_CAN_Tests.py"
+                                junit allowEmptyResults: true, testDataPublishers: [[$class: 'AttachmentPublisher']], testResults: "**/*.xml,"
+                            }
+                        }
+                    }
+                }
+                
+            }
+        }
+    )
+    node{    
+        stage('Send Email'){
+            step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: 'shreyank.ramachandra@delphi.com', sendToIndividuals: false])
+            // emailext attachLog: true, body: '$DEFAULT_CONTENT ', compressLog: true, postsendScript: 'emailext attachLog: true, body: \'$DEFAULT_CONTENT \', compressLog: true, recipientProviders: [[$class: \'RequesterRecipientProvider\'], [$class: \'CulpritsRecipientProvider\'], [$class: \'DevelopersRecipientProvider\']], subject: \'$DEFAULT_SUBJECT\', to: \'$DEFAULT_RECIPIENTS, shreyank.ramachandra@delphi.com\'', recipientProviders: [[$class: 'RequesterRecipientProvider'], [$class: 'CulpritsRecipientProvider'], [$class: 'DevelopersRecipientProvider']], subject: '$DEFAULT_SUBJECT', to: '$DEFAULT_RECIPIENTS, shreyank.ramachandra@delphi.com, shreyank.ramachandra@delphi.com'
+        }
+    }
+}

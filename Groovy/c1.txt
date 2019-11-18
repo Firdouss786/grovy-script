@@ -1,0 +1,7 @@
+SET PATH=C:\Python27;C:\Windows\system32
+cd Code_stats\Code_Stats
+python Compiler_Warnings_Reporter.py
+
+SET PATH=C:\Python27;C:\Windows\system32
+cd Code\Coverity\
+python coverity_restAPI.py -u cj7fxd -p delphi22

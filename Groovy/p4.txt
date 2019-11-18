@@ -1,0 +1,91 @@
+pipeline {
+    agent any
+    environment {
+        COMPILE_NODE = "Slave_1"
+        ECU_NODE = "SRR5_MRR3_ECU"
+        COVERITY_NODE = "Slave_1"
+        QAC_NODE = "Slave_1"
+	    VECTOR_NODE = "Slave_1"
+	    BUILD_MANAGER = 'purnendu.mishra@aptiv.com'
+        PROJECT_TECH_LEAD = 'hui.zhang2@aptiv.com'
+        PLASTIC_PROJECT_NAME = '10031592_MY21_Ford_DAT_MRR_S'
+        COVERITY_PROJECT_NAME = '10031592_MY21_Ford_DAT_MRR_S'
+        JIRA_PROJECT_KEY = 'APO'
+        PLASTIC_SERVER = 'plasticscm_prod1.delphiauto.net:8087'
+        PLASTIC_MAIN = "DAT2_MRR3_CI"
+        PLASTIC_WORKSPACE = "${env.WorkspacePath2Use}\\${PLASTIC_MAIN}"
+        
+    	COVERITY_SERVER = "coverity.northamerica.delphiauto.net"
+	    COV_PORT = "8087"
+	    COV_STREAM = "10031592_MY21_Ford_DAT_MRR_S_all"
+	    COVERITY_PASSPHRASE = "committer"
+    	COV_USER			= "committer"
+    	
+        COV_iDir = "${env.WorkspacePath2Use}\\cov-idir"
+        COMPILE_PATH = "${PLASTIC_WORKSPACE}\\RR_ADAS\\Make"
+        OUTPUTS_FOLDER = "${PLASTIC_WORKSPACE}\\Outputs\\App\\Gen"
+        CMD_CLEAN = "python Build_Script.py"
+        CMD_BUILD = "python Build_Script.py"
+        LICENCE = "LM_LICENSE_FILE=7582@uskoaa17.usinkok.northamerica.delphiauto.net;7580@kswlic01.delcoelect.com"
+        GLOBAL_TOOL_PATH = "PATH=C:\\Python27;C:\\Coverity\\2018_01\\bin;c:\\perl64\\bin;C:\\Windows\\system32"
+        CLOC_PATH = "PATH=C:\\Program Files\\Cloc;C:\\Windows\\System32"
+        PLASTIC_PATH = "PATH=C:\\Program Files\\PlasticSCM5\\client;C:\\Windows\\system32"
+        COMMON_REPORT_GEN_PATH = "${PLASTIC_WORKSPACE}\\RR_Build_Tools\\Python_Lib\\"
+        PATH_TO_JSON = "${PLASTIC_WORKSPACE}\\RR_Build_Tools\\Python_Lib\\JSON_2_HTML\\Build_Warnings.json"
+
+
+    }
+    
+    stages {
+        stage('IntegrationTests'){
+            parallel{
+                stage("CoverityTest"){
+                    steps{
+                        script{
+                            coverityResults connectInstance: 'Coverity_2017', connectView: 'Outstanding Defects', projectId: "10031600_MY21_Ford_DAT2_ADAS_HOST_P702_", unstable: true
+                        }
+                    }
+                }
+            }
+        }
+        
+    }
+      
+    post{
+        always{
+            //warnings canComputeNew: false, canResolveRelativePaths: false, categoriesPattern: '', consoleParsers: [[parserName: 'Wind River Diab Compiler (C/C++)']], defaultEncoding: '', excludePattern: '', healthy: '', includePattern: '', messagesPattern: '', unHealthy: ''
+            //warnings canResolveRelativePaths: false, canRunOnFailed: true, categoriesPattern: '', consoleParsers: [[parserName: 'Wind River Diab Compiler (C/C++)']], defaultEncoding: '', excludePattern: '', healthy: '', includePattern: '', messagesPattern: '', unHealthy: '', unstableNewAll: '0', usePreviousBuildAsReference: true
+            //step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "$BUILD_MANAGER $PROJECT_TECH_LEAD", sendToIndividuals: true])
+            script{
+                def jobName = currentBuild.fullDisplayName
+
+                emailext body:'''${JELLY_SCRIPT, template="DAT2.0.jelly"}''',
+                    mimeType: 'text/html',
+                    subject: "[Jenkins] BUILD FAILED ${jobName}",
+                    to: "${BUILD_MANAGER}"
+            }
+        }
+    
+        failure{
+            script{
+                def jobName = currentBuild.fullDisplayName
+
+                emailext body:'''${JELLY_SCRIPT, template="DAT2.0.jelly"}''',
+                    mimeType: 'text/html',
+                    subject: "[Jenkins] BUILD FAILED ${jobName}",
+                    to: "${BUILD_MANAGER}"
+            }
+            
+        }
+        unstable{
+            script{
+                def jobName = currentBuild.fullDisplayName
+
+                emailext body:'''${JELLY_SCRIPT, template="DAT2.0.jelly"}''',
+                    mimeType: 'text/html',
+                    subject: "[Jenkins] BUILD UNSTABLE ${jobName}",
+                    to: "${BUILD_MANAGER}"
+            }
+        }
+    }
+}

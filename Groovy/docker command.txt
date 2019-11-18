@@ -1,0 +1,1523 @@
+Microsoft Windows [Version 10.0.16299.1451]
+(c) 2017 Microsoft Corporation. All rights reserved.
+
+C:\Users\20077794>docker login
+Login with your Docker ID to push and pull images from Docker Hub. If you don't have a Docker ID, head over to https://hub.docker.com to create one.
+Username: firdousshaikh
+Password:
+Login Succeeded
+
+C:\Users\20077794>docker pull hello-world
+Using default tag: latest
+Error response from daemon: Get https://registry-1.docker.io/v2/: dial tcp: lookup registry-1.docker.io on 192.168.65.1:53: read udp 192.168.65.3:47471->192.168.65.1:53: i/o timeout
+
+C:\Users\20077794>docker pull hello-world
+Using default tag: latest
+latest: Pulling from library/hello-world
+1b930d010525: Pull complete
+Digest: sha256:c3b4ada4687bbaa170745b3e4dd8ac3f194ca95b2d0518b417fb47e5879d9b5f
+Status: Downloaded newer image for hello-world:latest
+docker.io/library/hello-world:latest
+
+C:\Users\20077794>docker run hello-world
+
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+    (amd64)
+ 3. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
+
+To try something more ambitious, you can run an Ubuntu container with:
+ $ docker run -it ubuntu bash
+
+Share images, automate workflows, and more with a free Docker ID:
+ https://hub.docker.com/
+
+For more examples and ideas, visit:
+ https://docs.docker.com/get-started/
+
+
+C:\Users\20077794>docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+hello-world         latest              fce289e99eb9        9 months ago        1.84kB
+
+C:\Users\20077794>docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+
+C:\Users\20077794>docker ps -a
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS                     PORTS               NAMES
+2c6fdcc14cfb        hello-world         "/hello"            2 minutes ago       Exited (0) 2 minutes ago                       intelligent_sanderson
+
+C:\Users\20077794>docker pull jenkins
+Using default tag: latest
+latest: Pulling from library/jenkins
+55cbf04beb70: Pull complete
+1607093a898c: Pull complete
+9a8ea045c926: Pull complete
+d4eee24d4dac: Pull complete
+c58988e753d7: Pull complete
+794a04897db9: Pull complete
+70fcfa476f73: Pull complete
+0539c80a02be: Pull complete
+54fefc6dcf80: Pull complete
+911bc90e47a8: Pull complete
+38430d93efed: Pull complete
+7e46ccda148a: Pull complete
+c0cbcb5ac747: Pull complete
+35ade7a86a8e: Pull complete
+aa433a6a56b1: Pull complete
+841c1dd38d62: Pull complete
+b865dcb08714: Pull complete
+5a3779030005: Pull complete
+12b47c68955c: Pull complete
+1322ea3e7bfd: Pull complete
+Digest: sha256:eeb4850eb65f2d92500e421b430ed1ec58a7ac909e91f518926e02473904f668
+Status: Downloaded newer image for jenkins:latest
+docker.io/library/jenkins:latest
+
+C:\Users\20077794>docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+hello-world         latest              fce289e99eb9        9 months ago        1.84kB
+jenkins             latest              cd14cecfdb3a        15 months ago       696MB
+
+C:\Users\20077794>docker pull nginx
+Using default tag: latest
+latest: Pulling from library/nginx
+8d691f585fa8: Pull complete
+047cb16c0ff6: Pull complete
+b0bbed1a78ca: Pull complete
+Digest: sha256:77ebc94e0cec30b20f9056bac1066b09fbdc049401b71850922c63fc0cc1762e
+Status: Downloaded newer image for nginx:latest
+docker.io/library/nginx:latest
+
+C:\Users\20077794>docker run -d -p 49001:8080 -v $PWD/jenkins:/var/jenkins_home:z -t jenkins/jenkins
+Unable to find image 'jenkins/jenkins:latest' locally
+latest: Pulling from jenkins/jenkins
+9a0b0ce99936: Pull complete
+db3b6004c61a: Pull complete
+f8f075920295: Pull complete
+6ef14aff1139: Pull complete
+962785d3b7f9: Pull complete
+631589572f9b: Pull complete
+c55a0c6f4c7b: Pull complete
+948253d386ea: Pull complete
+1926e486a439: Pull complete
+b239c83d11cf: Pull complete
+7c6bb03cd8d5: Pull complete
+75dc46c69978: Pull complete
+6be8dbe42b14: Pull complete
+ab8c94f6f9bf: Pull complete
+3e0f6d5fb537: Pull complete
+48e3f6378faa: Pull complete
+1d77ad0f9208: Pull complete
+1e1f0da61861: Pull complete
+Digest: sha256:585c36dcaa7ec658648e4fe6680e63b203af739b0a202d3901873e98b04e22f2
+Status: Downloaded newer image for jenkins/jenkins:latest
+docker: Error response from daemon: create $PWD/jenkins: "$PWD/jenkins" includes invalid characters for a local volume name, only "[a-zA-Z0-9][a-zA-Z0-9_.-]" are allowed. If you intended to pass a host directory, use absolute path.
+See 'docker run --help'.
+
+C:\Users\20077794>docker run -d -p 49001:8080 -v /jenkins:/var/jenkins_home:z -t jenkins/jenkins
+23fcdbb55fbc72f5323c6d98ae46047f7e5863f68b9dc7a8a6da55eed586a198
+
+C:\Users\20077794>docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+
+C:\Users\20077794>docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS                      PORTS               NAMES
+23fcdbb55fbc        jenkins/jenkins     "/sbin/tini -- /usr/…"   21 seconds ago      Exited (1) 18 seconds ago                       boring_shamir
+2c6fdcc14cfb        hello-world         "/hello"                 26 minutes ago      Exited (0) 26 minutes ago                       intelligent_sanderson
+
+C:\Users\20077794>docker inspect 23fcdbb55fbc
+[
+    {
+        "Id": "23fcdbb55fbc72f5323c6d98ae46047f7e5863f68b9dc7a8a6da55eed586a198",
+        "Created": "2019-10-22T11:09:12.1385535Z",
+        "Path": "/sbin/tini",
+        "Args": [
+            "--",
+            "/usr/local/bin/jenkins.sh"
+        ],
+        "State": {
+            "Status": "exited",
+            "Running": false,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 0,
+            "ExitCode": 1,
+            "Error": "",
+            "StartedAt": "2019-10-22T11:09:14.9060555Z",
+            "FinishedAt": "2019-10-22T11:09:14.9550437Z"
+        },
+        "Image": "sha256:eda4e3b68b8b02185aff28f64de9ba05b0086f62f236d343bf7f33c9967c1d25",
+        "ResolvConfPath": "/var/lib/docker/containers/23fcdbb55fbc72f5323c6d98ae46047f7e5863f68b9dc7a8a6da55eed586a198/resolv.conf",
+        "HostnamePath": "/var/lib/docker/containers/23fcdbb55fbc72f5323c6d98ae46047f7e5863f68b9dc7a8a6da55eed586a198/hostname",
+        "HostsPath": "/var/lib/docker/containers/23fcdbb55fbc72f5323c6d98ae46047f7e5863f68b9dc7a8a6da55eed586a198/hosts",
+        "LogPath": "/var/lib/docker/containers/23fcdbb55fbc72f5323c6d98ae46047f7e5863f68b9dc7a8a6da55eed586a198/23fcdbb55fbc72f5323c6d98ae46047f7e5863f68b9dc7a8a6da55eed586a198-json.log",
+        "Name": "/boring_shamir",
+        "RestartCount": 0,
+        "Driver": "overlay2",
+        "Platform": "linux",
+        "MountLabel": "",
+        "ProcessLabel": "",
+        "AppArmorProfile": "",
+        "ExecIDs": null,
+        "HostConfig": {
+            "Binds": [
+                "/jenkins:/var/jenkins_home:z"
+            ],
+            "ContainerIDFile": "",
+            "LogConfig": {
+                "Type": "json-file",
+                "Config": {}
+            },
+            "NetworkMode": "default",
+            "PortBindings": {
+                "8080/tcp": [
+                    {
+                        "HostIp": "",
+                        "HostPort": "49001"
+                    }
+                ]
+            },
+            "RestartPolicy": {
+                "Name": "no",
+                "MaximumRetryCount": 0
+            },
+            "AutoRemove": false,
+            "VolumeDriver": "",
+            "VolumesFrom": null,
+            "CapAdd": null,
+            "CapDrop": null,
+            "Capabilities": null,
+            "Dns": [],
+            "DnsOptions": [],
+            "DnsSearch": [],
+            "ExtraHosts": null,
+            "GroupAdd": null,
+            "IpcMode": "private",
+            "Cgroup": "",
+            "Links": null,
+            "OomScoreAdj": 0,
+            "PidMode": "",
+            "Privileged": false,
+            "PublishAllPorts": false,
+            "ReadonlyRootfs": false,
+            "SecurityOpt": null,
+            "UTSMode": "",
+            "UsernsMode": "",
+            "ShmSize": 67108864,
+            "Runtime": "runc",
+            "ConsoleSize": [
+                30,
+                120
+            ],
+            "Isolation": "",
+            "CpuShares": 0,
+            "Memory": 0,
+            "NanoCpus": 0,
+            "CgroupParent": "",
+            "BlkioWeight": 0,
+            "BlkioWeightDevice": [],
+            "BlkioDeviceReadBps": null,
+            "BlkioDeviceWriteBps": null,
+            "BlkioDeviceReadIOps": null,
+            "BlkioDeviceWriteIOps": null,
+            "CpuPeriod": 0,
+            "CpuQuota": 0,
+            "CpuRealtimePeriod": 0,
+            "CpuRealtimeRuntime": 0,
+            "CpusetCpus": "",
+            "CpusetMems": "",
+            "Devices": [],
+            "DeviceCgroupRules": null,
+            "DeviceRequests": null,
+            "KernelMemory": 0,
+            "KernelMemoryTCP": 0,
+            "MemoryReservation": 0,
+            "MemorySwap": 0,
+            "MemorySwappiness": null,
+            "OomKillDisable": false,
+            "PidsLimit": null,
+            "Ulimits": null,
+            "CpuCount": 0,
+            "CpuPercent": 0,
+            "IOMaximumIOps": 0,
+            "IOMaximumBandwidth": 0,
+            "MaskedPaths": [
+                "/proc/asound",
+                "/proc/acpi",
+                "/proc/kcore",
+                "/proc/keys",
+                "/proc/latency_stats",
+                "/proc/timer_list",
+                "/proc/timer_stats",
+                "/proc/sched_debug",
+                "/proc/scsi",
+                "/sys/firmware"
+            ],
+            "ReadonlyPaths": [
+                "/proc/bus",
+                "/proc/fs",
+                "/proc/irq",
+                "/proc/sys",
+                "/proc/sysrq-trigger"
+            ]
+        },
+        "GraphDriver": {
+            "Data": {
+                "LowerDir": "/var/lib/docker/overlay2/e5c3f5c3ec7aed107e207977819b31d006277643d77e0d3d222ba3aad7b7c566-init/diff:/var/lib/docker/overlay2/e8ad0f169b9107384f3348180c137ce040dd777a694c047e9069c88122ffda4f/diff:/var/lib/docker/overlay2/ad1a23d0d4cd9b43b47c9ecc5bae0c333a6f0f2900957a4f22fe70d2038eca48/diff:/var/lib/docker/overlay2/8d75f0030a99f8c3896526496c7d8355d8dbf958eb27aca7b0cafec1efddfdaa/diff:/var/lib/docker/overlay2/70bf285a4a9de7a373251737191d03d32fa1eb082a649c07c4395531130a4e25/diff:/var/lib/docker/overlay2/4398763dbc4c2d3ab659f730360473b5b039c133735c72351272ce0a575e5d8b/diff:/var/lib/docker/overlay2/3f57c0e5fe39dd44ea612d74727041461f5642eb416105beac9dc6d763e5bd74/diff:/var/lib/docker/overlay2/436ea8b698aee8f74452edcef00b6a2063eb007a7c319378124c9001e75f489b/diff:/var/lib/docker/overlay2/1e37070233e73f6df0c4a9ab04ee8b39f83c0d5441808f7a04ba9edb8726bcf7/diff:/var/lib/docker/overlay2/c46bd5a671c7f5dc27b26f578e0a4613b79782934222d9565f09b7a5de2caa6f/diff:/var/lib/docker/overlay2/c7fcc39373acd6a3283122aa2d36fa0ab3deeda0ffd991dd1d35ded072448112/diff:/var/lib/docker/overlay2/4bba42b529d9103203c7c83526282504080953586c12d90d6522aa15d8762536/diff:/var/lib/docker/overlay2/d2c0e77d66dc40c4a31b56229a025e871a957ecb93d6f9b7f738a8209c035865/diff:/var/lib/docker/overlay2/358c0f0937550a48082ee77951558899932f9ca3c98e959a7935074710ef9fc5/diff:/var/lib/docker/overlay2/5b3c1236a336562133e706c21571aece609e442b1d47c75c18335d496db20e57/diff:/var/lib/docker/overlay2/a47599ad27637b703009c4afe4efbe3f4816981cc261946f2bbc3d6b3f9a7958/diff:/var/lib/docker/overlay2/8a0c5d900549bfee5e4005ee138892a4600b41800f8f863041220cb6ecb8632d/diff:/var/lib/docker/overlay2/61a351af04ff05a725c1b49096e04f3943784cdca013fddcecf79cfd3729fea1/diff:/var/lib/docker/overlay2/c8a342d88786f9230e643d0b3f53197c5ff6ad45bce573038379a3c0c8b55066/diff",
+                "MergedDir": "/var/lib/docker/overlay2/e5c3f5c3ec7aed107e207977819b31d006277643d77e0d3d222ba3aad7b7c566/merged",
+                "UpperDir": "/var/lib/docker/overlay2/e5c3f5c3ec7aed107e207977819b31d006277643d77e0d3d222ba3aad7b7c566/diff",
+                "WorkDir": "/var/lib/docker/overlay2/e5c3f5c3ec7aed107e207977819b31d006277643d77e0d3d222ba3aad7b7c566/work"
+            },
+            "Name": "overlay2"
+        },
+        "Mounts": [
+            {
+                "Type": "bind",
+                "Source": "/jenkins",
+                "Destination": "/var/jenkins_home",
+                "Mode": "z",
+                "RW": true,
+                "Propagation": "rprivate"
+            }
+        ],
+        "Config": {
+            "Hostname": "23fcdbb55fbc",
+            "Domainname": "",
+            "User": "jenkins",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "ExposedPorts": {
+                "50000/tcp": {},
+                "8080/tcp": {}
+            },
+            "Tty": true,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/openjdk-8/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "LANG=C.UTF-8",
+                "JAVA_HOME=/usr/local/openjdk-8",
+                "JAVA_VERSION=8u232",
+                "JAVA_BASE_URL=https://github.com/AdoptOpenJDK/openjdk8-upstream-binaries/releases/download/jdk8u232-b09/OpenJDK8U-jdk_",
+                "JAVA_URL_VERSION=8u232b09",
+                "JENKINS_HOME=/var/jenkins_home",
+                "JENKINS_SLAVE_AGENT_PORT=50000",
+                "REF=/usr/share/jenkins/ref",
+                "JENKINS_VERSION=2.201",
+                "JENKINS_UC=https://updates.jenkins.io",
+                "JENKINS_UC_EXPERIMENTAL=https://updates.jenkins.io/experimental",
+                "JENKINS_INCREMENTALS_REPO_MIRROR=https://repo.jenkins-ci.org/incrementals",
+                "COPY_REFERENCE_FILE_LOG=/var/jenkins_home/copy_reference_file.log"
+            ],
+            "Cmd": null,
+            "Image": "jenkins/jenkins",
+            "Volumes": {
+                "/var/jenkins_home": {}
+            },
+            "WorkingDir": "",
+            "Entrypoint": [
+                "/sbin/tini",
+                "--",
+                "/usr/local/bin/jenkins.sh"
+            ],
+            "OnBuild": null,
+            "Labels": {}
+        },
+        "NetworkSettings": {
+            "Bridge": "",
+            "SandboxID": "a456e9ae7ebfc22be96f0983d6d0d5370d8e7fc0b15f2878b8019de955db3905",
+            "HairpinMode": false,
+            "LinkLocalIPv6Address": "",
+            "LinkLocalIPv6PrefixLen": 0,
+            "Ports": {},
+            "SandboxKey": "/var/run/docker/netns/a456e9ae7ebf",
+            "SecondaryIPAddresses": null,
+            "SecondaryIPv6Addresses": null,
+            "EndpointID": "",
+            "Gateway": "",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "IPAddress": "",
+            "IPPrefixLen": 0,
+            "IPv6Gateway": "",
+            "MacAddress": "",
+            "Networks": {
+                "bridge": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": null,
+                    "NetworkID": "0940dfb4258b2715ef76d8683a35182d490340ee4edcc6bc39c1f7174a528d4f",
+                    "EndpointID": "",
+                    "Gateway": "",
+                    "IPAddress": "",
+                    "IPPrefixLen": 0,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "MacAddress": "",
+                    "DriverOpts": null
+                }
+            }
+        }
+    }
+]
+
+C:\Users\20077794>docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+jenkins/jenkins     latest              eda4e3b68b8b        32 hours ago        553MB
+nginx               latest              5a9061639d0a        5 days ago          126MB
+hello-world         latest              fce289e99eb9        9 months ago        1.84kB
+jenkins             latest              cd14cecfdb3a        15 months ago       696MB
+
+C:\Users\20077794>docker inspect eda4e3b68b8b
+[
+    {
+        "Id": "sha256:eda4e3b68b8b02185aff28f64de9ba05b0086f62f236d343bf7f33c9967c1d25",
+        "RepoTags": [
+            "jenkins/jenkins:latest"
+        ],
+        "RepoDigests": [
+            "jenkins/jenkins@sha256:585c36dcaa7ec658648e4fe6680e63b203af739b0a202d3901873e98b04e22f2"
+        ],
+        "Parent": "",
+        "Comment": "",
+        "Created": "2019-10-21T02:49:17.010548971Z",
+        "Container": "",
+        "ContainerConfig": {
+            "Hostname": "",
+            "Domainname": "",
+            "User": "jenkins",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "ExposedPorts": {
+                "50000/tcp": {},
+                "8080/tcp": {}
+            },
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/openjdk-8/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "LANG=C.UTF-8",
+                "JAVA_HOME=/usr/local/openjdk-8",
+                "JAVA_VERSION=8u232",
+                "JAVA_BASE_URL=https://github.com/AdoptOpenJDK/openjdk8-upstream-binaries/releases/download/jdk8u232-b09/OpenJDK8U-jdk_",
+                "JAVA_URL_VERSION=8u232b09",
+                "JENKINS_HOME=/var/jenkins_home",
+                "JENKINS_SLAVE_AGENT_PORT=50000",
+                "REF=/usr/share/jenkins/ref",
+                "JENKINS_VERSION=2.201",
+                "JENKINS_UC=https://updates.jenkins.io",
+                "JENKINS_UC_EXPERIMENTAL=https://updates.jenkins.io/experimental",
+                "JENKINS_INCREMENTALS_REPO_MIRROR=https://repo.jenkins-ci.org/incrementals",
+                "COPY_REFERENCE_FILE_LOG=/var/jenkins_home/copy_reference_file.log"
+            ],
+            "Cmd": [
+                "/bin/sh",
+                "-c",
+                "#(nop) COPY file:78c99e4fdfb9fc7b7295ceb786f9e2c3ae66e7f4a4e68a3e0c0548e6e804ffbf in /usr/local/bin/install-plugins.sh "
+            ],
+            "Image": "sha256:4e6f51bcf0bfc86eeb5e9a69ba321cb0db66381474c045016b26027b45af97cf",
+            "Volumes": {
+                "/var/jenkins_home": {}
+            },
+            "WorkingDir": "",
+            "Entrypoint": [
+                "/sbin/tini",
+                "--",
+                "/usr/local/bin/jenkins.sh"
+            ],
+            "OnBuild": null,
+            "Labels": null
+        },
+        "DockerVersion": "19.03.4",
+        "Author": "",
+        "Config": {
+            "Hostname": "",
+            "Domainname": "",
+            "User": "jenkins",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "ExposedPorts": {
+                "50000/tcp": {},
+                "8080/tcp": {}
+            },
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/openjdk-8/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "LANG=C.UTF-8",
+                "JAVA_HOME=/usr/local/openjdk-8",
+                "JAVA_VERSION=8u232",
+                "JAVA_BASE_URL=https://github.com/AdoptOpenJDK/openjdk8-upstream-binaries/releases/download/jdk8u232-b09/OpenJDK8U-jdk_",
+                "JAVA_URL_VERSION=8u232b09",
+                "JENKINS_HOME=/var/jenkins_home",
+                "JENKINS_SLAVE_AGENT_PORT=50000",
+                "REF=/usr/share/jenkins/ref",
+                "JENKINS_VERSION=2.201",
+                "JENKINS_UC=https://updates.jenkins.io",
+                "JENKINS_UC_EXPERIMENTAL=https://updates.jenkins.io/experimental",
+                "JENKINS_INCREMENTALS_REPO_MIRROR=https://repo.jenkins-ci.org/incrementals",
+                "COPY_REFERENCE_FILE_LOG=/var/jenkins_home/copy_reference_file.log"
+            ],
+            "Cmd": null,
+            "Image": "sha256:4e6f51bcf0bfc86eeb5e9a69ba321cb0db66381474c045016b26027b45af97cf",
+            "Volumes": {
+                "/var/jenkins_home": {}
+            },
+            "WorkingDir": "",
+            "Entrypoint": [
+                "/sbin/tini",
+                "--",
+                "/usr/local/bin/jenkins.sh"
+            ],
+            "OnBuild": null,
+            "Labels": null
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 552841000,
+        "VirtualSize": 552841000,
+        "GraphDriver": {
+            "Data": {
+                "LowerDir": "/var/lib/docker/overlay2/ad1a23d0d4cd9b43b47c9ecc5bae0c333a6f0f2900957a4f22fe70d2038eca48/diff:/var/lib/docker/overlay2/8d75f0030a99f8c3896526496c7d8355d8dbf958eb27aca7b0cafec1efddfdaa/diff:/var/lib/docker/overlay2/70bf285a4a9de7a373251737191d03d32fa1eb082a649c07c4395531130a4e25/diff:/var/lib/docker/overlay2/4398763dbc4c2d3ab659f730360473b5b039c133735c72351272ce0a575e5d8b/diff:/var/lib/docker/overlay2/3f57c0e5fe39dd44ea612d74727041461f5642eb416105beac9dc6d763e5bd74/diff:/var/lib/docker/overlay2/436ea8b698aee8f74452edcef00b6a2063eb007a7c319378124c9001e75f489b/diff:/var/lib/docker/overlay2/1e37070233e73f6df0c4a9ab04ee8b39f83c0d5441808f7a04ba9edb8726bcf7/diff:/var/lib/docker/overlay2/c46bd5a671c7f5dc27b26f578e0a4613b79782934222d9565f09b7a5de2caa6f/diff:/var/lib/docker/overlay2/c7fcc39373acd6a3283122aa2d36fa0ab3deeda0ffd991dd1d35ded072448112/diff:/var/lib/docker/overlay2/4bba42b529d9103203c7c83526282504080953586c12d90d6522aa15d8762536/diff:/var/lib/docker/overlay2/d2c0e77d66dc40c4a31b56229a025e871a957ecb93d6f9b7f738a8209c035865/diff:/var/lib/docker/overlay2/358c0f0937550a48082ee77951558899932f9ca3c98e959a7935074710ef9fc5/diff:/var/lib/docker/overlay2/5b3c1236a336562133e706c21571aece609e442b1d47c75c18335d496db20e57/diff:/var/lib/docker/overlay2/a47599ad27637b703009c4afe4efbe3f4816981cc261946f2bbc3d6b3f9a7958/diff:/var/lib/docker/overlay2/8a0c5d900549bfee5e4005ee138892a4600b41800f8f863041220cb6ecb8632d/diff:/var/lib/docker/overlay2/61a351af04ff05a725c1b49096e04f3943784cdca013fddcecf79cfd3729fea1/diff:/var/lib/docker/overlay2/c8a342d88786f9230e643d0b3f53197c5ff6ad45bce573038379a3c0c8b55066/diff",
+                "MergedDir": "/var/lib/docker/overlay2/e8ad0f169b9107384f3348180c137ce040dd777a694c047e9069c88122ffda4f/merged",
+                "UpperDir": "/var/lib/docker/overlay2/e8ad0f169b9107384f3348180c137ce040dd777a694c047e9069c88122ffda4f/diff",
+                "WorkDir": "/var/lib/docker/overlay2/e8ad0f169b9107384f3348180c137ce040dd777a694c047e9069c88122ffda4f/work"
+            },
+            "Name": "overlay2"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:97041f29baff775daa9b4f608c11db724fbe406c6478f69721a85df4006ef7c0",
+                "sha256:2f77733e9824e18b358f20bd33ad569f21e3136c2a22ef502c15b627be3c9f5e",
+                "sha256:687890749166493fb9958058143592c3aadf73b6f914f1b15093e8108d47dcd8",
+                "sha256:b8f8aeff56a83bdb007111d2a746c5819d592c6c0a0ddbd4d2e60f5ed5d71dea",
+                "sha256:7e3c900343d08f51118c48e0a7ca914c5532681e345078ef4a222ff2898f7a3a",
+                "sha256:99557920a7c54f7f15f397a839132ef74fcf6e60e5659d6f14f4f10dbef2060f",
+                "sha256:a8902d6047fea645ed2d9e425a947c9f6ffa6ffce6c1df9860a243813a7830ed",
+                "sha256:1aa9e3d8528be74bd07655239d2d0f4f21c955419e800a1b0490d43c44466dee",
+                "sha256:baad9b06ab2b1cf74fb687e8183c18eabba88a1b504ef0c33be61967d50d3808",
+                "sha256:743bc384038b3f7265e0c117ad24c3577f4ecb747842d3133b71728981a44011",
+                "sha256:f32aa6d34f321ccb8582ad793cd86a943b30995ed94e4ac570cd5226bccfaacb",
+                "sha256:a5b30dfaa8df3c045eac025ab2ea778f56940f784799c9468979e17ec1f91d1d",
+                "sha256:53c24aa548c799a9e705b02f835a3a49a251d54fdf9fb819aefe58b9b1abadd7",
+                "sha256:efcc981b78a3d174f13e054acf17a5d678ab082d1ab6a4bd70c42b03f5cb387d",
+                "sha256:2d800188039be0526bb1ba9884485c275473adf0963f6952f8c4134323bc4e5b",
+                "sha256:6fb7bb1834d8ddf72afd3ff6cbe065e6d8e4a6fd2a9bad601abfdc1af7f62687",
+                "sha256:1f0212fc4d5e5b3e81eafbb775b7f2be7461caed188bd21509e30f0cc3e81727",
+                "sha256:80a31cd578d2d3d44f9d8883164d6df765cf8b565ef95bf73387e44a54ae6fad"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "0001-01-01T00:00:00Z"
+        }
+    }
+]
+
+C:\Users\20077794>docker-machine ip default
+Docker machine "default" does not exist. Use "docker-machine ls" to list machines. Use "docker-machine create" to add a new one.
+
+C:\Users\20077794>docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS                      PORTS               NAMES
+23fcdbb55fbc        jenkins/jenkins     "/sbin/tini -- /usr/…"   6 minutes ago       Exited (1) 5 minutes ago                        boring_shamir
+2c6fdcc14cfb        hello-world         "/hello"                 32 minutes ago      Exited (0) 32 minutes ago                       intelligent_sanderson
+
+C:\Users\20077794>docker attach 23fcdbb55fbc
+You cannot attach to a stopped container, start it first
+
+C:\Users\20077794>docker start 23fcdbb55fbc
+23fcdbb55fbc
+
+C:\Users\20077794>docker run -it 23fcdbb55fbc
+Unable to find image '23fcdbb55fbc:latest' locally
+docker: Error response from daemon: pull access denied for 23fcdbb55fbc, repository does not exist or may require 'docker login': denied: requested access to the resource is denied.
+See 'docker run --help'.
+
+C:\Users\20077794>docker attach 23fcdbb55fbc
+You cannot attach to a stopped container, start it first
+
+C:\Users\20077794>docker pull ovm
+Using default tag: latest
+Error response from daemon: pull access denied for ovm, repository does not exist or may require 'docker login': denied: requested access to the resource is denied
+
+C:\Users\20077794>docker login
+Authenticating with existing credentials...
+Login Succeeded
+
+C:\Users\20077794>docker pull ovm
+Using default tag: latest
+Error response from daemon: pull access denied for ovm, repository does not exist or may require 'docker login': denied: requested access to the resource is denied
+
+C:\Users\20077794>docker inspect
+"docker inspect" requires at least 1 argument.
+See 'docker inspect --help'.
+
+Usage:  docker inspect [OPTIONS] NAME|ID [NAME|ID...]
+
+Return low-level information on Docker objects
+
+C:\Users\20077794>docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+
+C:\Users\20077794>docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS                   PORTS               NAMES
+23fcdbb55fbc        jenkins/jenkins     "/sbin/tini -- /usr/…"   2 hours ago         Exited (1) 2 hours ago                       boring_shamir
+2c6fdcc14cfb        hello-world         "/hello"                 2 hours ago         Exited (0) 2 hours ago                       intelligent_sanderson
+
+C:\Users\20077794>docker inspect 23fcdbb55fbc
+[
+    {
+        "Id": "23fcdbb55fbc72f5323c6d98ae46047f7e5863f68b9dc7a8a6da55eed586a198",
+        "Created": "2019-10-22T11:09:12.1385535Z",
+        "Path": "/sbin/tini",
+        "Args": [
+            "--",
+            "/usr/local/bin/jenkins.sh"
+        ],
+        "State": {
+            "Status": "exited",
+            "Running": false,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 0,
+            "ExitCode": 1,
+            "Error": "",
+            "StartedAt": "2019-10-22T11:15:47.2173792Z",
+            "FinishedAt": "2019-10-22T11:15:47.2856244Z"
+        },
+        "Image": "sha256:eda4e3b68b8b02185aff28f64de9ba05b0086f62f236d343bf7f33c9967c1d25",
+        "ResolvConfPath": "/var/lib/docker/containers/23fcdbb55fbc72f5323c6d98ae46047f7e5863f68b9dc7a8a6da55eed586a198/resolv.conf",
+        "HostnamePath": "/var/lib/docker/containers/23fcdbb55fbc72f5323c6d98ae46047f7e5863f68b9dc7a8a6da55eed586a198/hostname",
+        "HostsPath": "/var/lib/docker/containers/23fcdbb55fbc72f5323c6d98ae46047f7e5863f68b9dc7a8a6da55eed586a198/hosts",
+        "LogPath": "/var/lib/docker/containers/23fcdbb55fbc72f5323c6d98ae46047f7e5863f68b9dc7a8a6da55eed586a198/23fcdbb55fbc72f5323c6d98ae46047f7e5863f68b9dc7a8a6da55eed586a198-json.log",
+        "Name": "/boring_shamir",
+        "RestartCount": 0,
+        "Driver": "overlay2",
+        "Platform": "linux",
+        "MountLabel": "",
+        "ProcessLabel": "",
+        "AppArmorProfile": "",
+        "ExecIDs": null,
+        "HostConfig": {
+            "Binds": [
+                "/jenkins:/var/jenkins_home:z"
+            ],
+            "ContainerIDFile": "",
+            "LogConfig": {
+                "Type": "json-file",
+                "Config": {}
+            },
+            "NetworkMode": "default",
+            "PortBindings": {
+                "8080/tcp": [
+                    {
+                        "HostIp": "",
+                        "HostPort": "49001"
+                    }
+                ]
+            },
+            "RestartPolicy": {
+                "Name": "no",
+                "MaximumRetryCount": 0
+            },
+            "AutoRemove": false,
+            "VolumeDriver": "",
+            "VolumesFrom": null,
+            "CapAdd": null,
+            "CapDrop": null,
+            "Capabilities": null,
+            "Dns": [],
+            "DnsOptions": [],
+            "DnsSearch": [],
+            "ExtraHosts": null,
+            "GroupAdd": null,
+            "IpcMode": "private",
+            "Cgroup": "",
+            "Links": null,
+            "OomScoreAdj": 0,
+            "PidMode": "",
+            "Privileged": false,
+            "PublishAllPorts": false,
+            "ReadonlyRootfs": false,
+            "SecurityOpt": null,
+            "UTSMode": "",
+            "UsernsMode": "",
+            "ShmSize": 67108864,
+            "Runtime": "runc",
+            "ConsoleSize": [
+                30,
+                120
+            ],
+            "Isolation": "",
+            "CpuShares": 0,
+            "Memory": 0,
+            "NanoCpus": 0,
+            "CgroupParent": "",
+            "BlkioWeight": 0,
+            "BlkioWeightDevice": [],
+            "BlkioDeviceReadBps": null,
+            "BlkioDeviceWriteBps": null,
+            "BlkioDeviceReadIOps": null,
+            "BlkioDeviceWriteIOps": null,
+            "CpuPeriod": 0,
+            "CpuQuota": 0,
+            "CpuRealtimePeriod": 0,
+            "CpuRealtimeRuntime": 0,
+            "CpusetCpus": "",
+            "CpusetMems": "",
+            "Devices": [],
+            "DeviceCgroupRules": null,
+            "DeviceRequests": null,
+            "KernelMemory": 0,
+            "KernelMemoryTCP": 0,
+            "MemoryReservation": 0,
+            "MemorySwap": 0,
+            "MemorySwappiness": null,
+            "OomKillDisable": false,
+            "PidsLimit": null,
+            "Ulimits": null,
+            "CpuCount": 0,
+            "CpuPercent": 0,
+            "IOMaximumIOps": 0,
+            "IOMaximumBandwidth": 0,
+            "MaskedPaths": [
+                "/proc/asound",
+                "/proc/acpi",
+                "/proc/kcore",
+                "/proc/keys",
+                "/proc/latency_stats",
+                "/proc/timer_list",
+                "/proc/timer_stats",
+                "/proc/sched_debug",
+                "/proc/scsi",
+                "/sys/firmware"
+            ],
+            "ReadonlyPaths": [
+                "/proc/bus",
+                "/proc/fs",
+                "/proc/irq",
+                "/proc/sys",
+                "/proc/sysrq-trigger"
+            ]
+        },
+        "GraphDriver": {
+            "Data": {
+                "LowerDir": "/var/lib/docker/overlay2/e5c3f5c3ec7aed107e207977819b31d006277643d77e0d3d222ba3aad7b7c566-init/diff:/var/lib/docker/overlay2/e8ad0f169b9107384f3348180c137ce040dd777a694c047e9069c88122ffda4f/diff:/var/lib/docker/overlay2/ad1a23d0d4cd9b43b47c9ecc5bae0c333a6f0f2900957a4f22fe70d2038eca48/diff:/var/lib/docker/overlay2/8d75f0030a99f8c3896526496c7d8355d8dbf958eb27aca7b0cafec1efddfdaa/diff:/var/lib/docker/overlay2/70bf285a4a9de7a373251737191d03d32fa1eb082a649c07c4395531130a4e25/diff:/var/lib/docker/overlay2/4398763dbc4c2d3ab659f730360473b5b039c133735c72351272ce0a575e5d8b/diff:/var/lib/docker/overlay2/3f57c0e5fe39dd44ea612d74727041461f5642eb416105beac9dc6d763e5bd74/diff:/var/lib/docker/overlay2/436ea8b698aee8f74452edcef00b6a2063eb007a7c319378124c9001e75f489b/diff:/var/lib/docker/overlay2/1e37070233e73f6df0c4a9ab04ee8b39f83c0d5441808f7a04ba9edb8726bcf7/diff:/var/lib/docker/overlay2/c46bd5a671c7f5dc27b26f578e0a4613b79782934222d9565f09b7a5de2caa6f/diff:/var/lib/docker/overlay2/c7fcc39373acd6a3283122aa2d36fa0ab3deeda0ffd991dd1d35ded072448112/diff:/var/lib/docker/overlay2/4bba42b529d9103203c7c83526282504080953586c12d90d6522aa15d8762536/diff:/var/lib/docker/overlay2/d2c0e77d66dc40c4a31b56229a025e871a957ecb93d6f9b7f738a8209c035865/diff:/var/lib/docker/overlay2/358c0f0937550a48082ee77951558899932f9ca3c98e959a7935074710ef9fc5/diff:/var/lib/docker/overlay2/5b3c1236a336562133e706c21571aece609e442b1d47c75c18335d496db20e57/diff:/var/lib/docker/overlay2/a47599ad27637b703009c4afe4efbe3f4816981cc261946f2bbc3d6b3f9a7958/diff:/var/lib/docker/overlay2/8a0c5d900549bfee5e4005ee138892a4600b41800f8f863041220cb6ecb8632d/diff:/var/lib/docker/overlay2/61a351af04ff05a725c1b49096e04f3943784cdca013fddcecf79cfd3729fea1/diff:/var/lib/docker/overlay2/c8a342d88786f9230e643d0b3f53197c5ff6ad45bce573038379a3c0c8b55066/diff",
+                "MergedDir": "/var/lib/docker/overlay2/e5c3f5c3ec7aed107e207977819b31d006277643d77e0d3d222ba3aad7b7c566/merged",
+                "UpperDir": "/var/lib/docker/overlay2/e5c3f5c3ec7aed107e207977819b31d006277643d77e0d3d222ba3aad7b7c566/diff",
+                "WorkDir": "/var/lib/docker/overlay2/e5c3f5c3ec7aed107e207977819b31d006277643d77e0d3d222ba3aad7b7c566/work"
+            },
+            "Name": "overlay2"
+        },
+        "Mounts": [
+            {
+                "Type": "bind",
+                "Source": "/jenkins",
+                "Destination": "/var/jenkins_home",
+                "Mode": "z",
+                "RW": true,
+                "Propagation": "rprivate"
+            }
+        ],
+        "Config": {
+            "Hostname": "23fcdbb55fbc",
+            "Domainname": "",
+            "User": "jenkins",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "ExposedPorts": {
+                "50000/tcp": {},
+                "8080/tcp": {}
+            },
+            "Tty": true,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/openjdk-8/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "LANG=C.UTF-8",
+                "JAVA_HOME=/usr/local/openjdk-8",
+                "JAVA_VERSION=8u232",
+                "JAVA_BASE_URL=https://github.com/AdoptOpenJDK/openjdk8-upstream-binaries/releases/download/jdk8u232-b09/OpenJDK8U-jdk_",
+                "JAVA_URL_VERSION=8u232b09",
+                "JENKINS_HOME=/var/jenkins_home",
+                "JENKINS_SLAVE_AGENT_PORT=50000",
+                "REF=/usr/share/jenkins/ref",
+                "JENKINS_VERSION=2.201",
+                "JENKINS_UC=https://updates.jenkins.io",
+                "JENKINS_UC_EXPERIMENTAL=https://updates.jenkins.io/experimental",
+                "JENKINS_INCREMENTALS_REPO_MIRROR=https://repo.jenkins-ci.org/incrementals",
+                "COPY_REFERENCE_FILE_LOG=/var/jenkins_home/copy_reference_file.log"
+            ],
+            "Cmd": null,
+            "Image": "jenkins/jenkins",
+            "Volumes": {
+                "/var/jenkins_home": {}
+            },
+            "WorkingDir": "",
+            "Entrypoint": [
+                "/sbin/tini",
+                "--",
+                "/usr/local/bin/jenkins.sh"
+            ],
+            "OnBuild": null,
+            "Labels": {}
+        },
+        "NetworkSettings": {
+            "Bridge": "",
+            "SandboxID": "ae8781a5e63e6b9c1dd56de81322a84046a2e129f0b6631175fb1a2bdd420b1e",
+            "HairpinMode": false,
+            "LinkLocalIPv6Address": "",
+            "LinkLocalIPv6PrefixLen": 0,
+            "Ports": {},
+            "SandboxKey": "/var/run/docker/netns/ae8781a5e63e",
+            "SecondaryIPAddresses": null,
+            "SecondaryIPv6Addresses": null,
+            "EndpointID": "",
+            "Gateway": "",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "IPAddress": "",
+            "IPPrefixLen": 0,
+            "IPv6Gateway": "",
+            "MacAddress": "",
+            "Networks": {
+                "bridge": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": null,
+                    "NetworkID": "0940dfb4258b2715ef76d8683a35182d490340ee4edcc6bc39c1f7174a528d4f",
+                    "EndpointID": "",
+                    "Gateway": "",
+                    "IPAddress": "",
+                    "IPPrefixLen": 0,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "MacAddress": "",
+                    "DriverOpts": null
+                }
+            }
+        }
+    }
+]
+
+C:\Users\20077794>docker inspect 23fcdbb55fbc
+[
+    {
+        "Id": "23fcdbb55fbc72f5323c6d98ae46047f7e5863f68b9dc7a8a6da55eed586a198",
+        "Created": "2019-10-22T11:09:12.1385535Z",
+        "Path": "/sbin/tini",
+        "Args": [
+            "--",
+            "/usr/local/bin/jenkins.sh"
+        ],
+        "State": {
+            "Status": "exited",
+            "Running": false,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 0,
+            "ExitCode": 1,
+            "Error": "",
+            "StartedAt": "2019-10-22T11:15:47.2173792Z",
+            "FinishedAt": "2019-10-22T11:15:47.2856244Z"
+        },
+        "Image": "sha256:eda4e3b68b8b02185aff28f64de9ba05b0086f62f236d343bf7f33c9967c1d25",
+        "ResolvConfPath": "/var/lib/docker/containers/23fcdbb55fbc72f5323c6d98ae46047f7e5863f68b9dc7a8a6da55eed586a198/resolv.conf",
+        "HostnamePath": "/var/lib/docker/containers/23fcdbb55fbc72f5323c6d98ae46047f7e5863f68b9dc7a8a6da55eed586a198/hostname",
+        "HostsPath": "/var/lib/docker/containers/23fcdbb55fbc72f5323c6d98ae46047f7e5863f68b9dc7a8a6da55eed586a198/hosts",
+        "LogPath": "/var/lib/docker/containers/23fcdbb55fbc72f5323c6d98ae46047f7e5863f68b9dc7a8a6da55eed586a198/23fcdbb55fbc72f5323c6d98ae46047f7e5863f68b9dc7a8a6da55eed586a198-json.log",
+        "Name": "/boring_shamir",
+        "RestartCount": 0,
+        "Driver": "overlay2",
+        "Platform": "linux",
+        "MountLabel": "",
+        "ProcessLabel": "",
+        "AppArmorProfile": "",
+        "ExecIDs": null,
+        "HostConfig": {
+            "Binds": [
+                "/jenkins:/var/jenkins_home:z"
+            ],
+            "ContainerIDFile": "",
+            "LogConfig": {
+                "Type": "json-file",
+                "Config": {}
+            },
+            "NetworkMode": "default",
+            "PortBindings": {
+                "8080/tcp": [
+                    {
+                        "HostIp": "",
+                        "HostPort": "49001"
+                    }
+                ]
+            },
+            "RestartPolicy": {
+                "Name": "no",
+                "MaximumRetryCount": 0
+            },
+            "AutoRemove": false,
+            "VolumeDriver": "",
+            "VolumesFrom": null,
+            "CapAdd": null,
+            "CapDrop": null,
+            "Capabilities": null,
+            "Dns": [],
+            "DnsOptions": [],
+            "DnsSearch": [],
+            "ExtraHosts": null,
+            "GroupAdd": null,
+            "IpcMode": "private",
+            "Cgroup": "",
+            "Links": null,
+            "OomScoreAdj": 0,
+            "PidMode": "",
+            "Privileged": false,
+            "PublishAllPorts": false,
+            "ReadonlyRootfs": false,
+            "SecurityOpt": null,
+            "UTSMode": "",
+            "UsernsMode": "",
+            "ShmSize": 67108864,
+            "Runtime": "runc",
+            "ConsoleSize": [
+                30,
+                120
+            ],
+            "Isolation": "",
+            "CpuShares": 0,
+            "Memory": 0,
+            "NanoCpus": 0,
+            "CgroupParent": "",
+            "BlkioWeight": 0,
+            "BlkioWeightDevice": [],
+            "BlkioDeviceReadBps": null,
+            "BlkioDeviceWriteBps": null,
+            "BlkioDeviceReadIOps": null,
+            "BlkioDeviceWriteIOps": null,
+            "CpuPeriod": 0,
+            "CpuQuota": 0,
+            "CpuRealtimePeriod": 0,
+            "CpuRealtimeRuntime": 0,
+            "CpusetCpus": "",
+            "CpusetMems": "",
+            "Devices": [],
+            "DeviceCgroupRules": null,
+            "DeviceRequests": null,
+            "KernelMemory": 0,
+            "KernelMemoryTCP": 0,
+            "MemoryReservation": 0,
+            "MemorySwap": 0,
+            "MemorySwappiness": null,
+            "OomKillDisable": false,
+            "PidsLimit": null,
+            "Ulimits": null,
+            "CpuCount": 0,
+            "CpuPercent": 0,
+            "IOMaximumIOps": 0,
+            "IOMaximumBandwidth": 0,
+            "MaskedPaths": [
+                "/proc/asound",
+                "/proc/acpi",
+                "/proc/kcore",
+                "/proc/keys",
+                "/proc/latency_stats",
+                "/proc/timer_list",
+                "/proc/timer_stats",
+                "/proc/sched_debug",
+                "/proc/scsi",
+                "/sys/firmware"
+            ],
+            "ReadonlyPaths": [
+                "/proc/bus",
+                "/proc/fs",
+                "/proc/irq",
+                "/proc/sys",
+                "/proc/sysrq-trigger"
+            ]
+        },
+        "GraphDriver": {
+            "Data": {
+                "LowerDir": "/var/lib/docker/overlay2/e5c3f5c3ec7aed107e207977819b31d006277643d77e0d3d222ba3aad7b7c566-init/diff:/var/lib/docker/overlay2/e8ad0f169b9107384f3348180c137ce040dd777a694c047e9069c88122ffda4f/diff:/var/lib/docker/overlay2/ad1a23d0d4cd9b43b47c9ecc5bae0c333a6f0f2900957a4f22fe70d2038eca48/diff:/var/lib/docker/overlay2/8d75f0030a99f8c3896526496c7d8355d8dbf958eb27aca7b0cafec1efddfdaa/diff:/var/lib/docker/overlay2/70bf285a4a9de7a373251737191d03d32fa1eb082a649c07c4395531130a4e25/diff:/var/lib/docker/overlay2/4398763dbc4c2d3ab659f730360473b5b039c133735c72351272ce0a575e5d8b/diff:/var/lib/docker/overlay2/3f57c0e5fe39dd44ea612d74727041461f5642eb416105beac9dc6d763e5bd74/diff:/var/lib/docker/overlay2/436ea8b698aee8f74452edcef00b6a2063eb007a7c319378124c9001e75f489b/diff:/var/lib/docker/overlay2/1e37070233e73f6df0c4a9ab04ee8b39f83c0d5441808f7a04ba9edb8726bcf7/diff:/var/lib/docker/overlay2/c46bd5a671c7f5dc27b26f578e0a4613b79782934222d9565f09b7a5de2caa6f/diff:/var/lib/docker/overlay2/c7fcc39373acd6a3283122aa2d36fa0ab3deeda0ffd991dd1d35ded072448112/diff:/var/lib/docker/overlay2/4bba42b529d9103203c7c83526282504080953586c12d90d6522aa15d8762536/diff:/var/lib/docker/overlay2/d2c0e77d66dc40c4a31b56229a025e871a957ecb93d6f9b7f738a8209c035865/diff:/var/lib/docker/overlay2/358c0f0937550a48082ee77951558899932f9ca3c98e959a7935074710ef9fc5/diff:/var/lib/docker/overlay2/5b3c1236a336562133e706c21571aece609e442b1d47c75c18335d496db20e57/diff:/var/lib/docker/overlay2/a47599ad27637b703009c4afe4efbe3f4816981cc261946f2bbc3d6b3f9a7958/diff:/var/lib/docker/overlay2/8a0c5d900549bfee5e4005ee138892a4600b41800f8f863041220cb6ecb8632d/diff:/var/lib/docker/overlay2/61a351af04ff05a725c1b49096e04f3943784cdca013fddcecf79cfd3729fea1/diff:/var/lib/docker/overlay2/c8a342d88786f9230e643d0b3f53197c5ff6ad45bce573038379a3c0c8b55066/diff",
+                "MergedDir": "/var/lib/docker/overlay2/e5c3f5c3ec7aed107e207977819b31d006277643d77e0d3d222ba3aad7b7c566/merged",
+                "UpperDir": "/var/lib/docker/overlay2/e5c3f5c3ec7aed107e207977819b31d006277643d77e0d3d222ba3aad7b7c566/diff",
+                "WorkDir": "/var/lib/docker/overlay2/e5c3f5c3ec7aed107e207977819b31d006277643d77e0d3d222ba3aad7b7c566/work"
+            },
+            "Name": "overlay2"
+        },
+        "Mounts": [
+            {
+                "Type": "bind",
+                "Source": "/jenkins",
+                "Destination": "/var/jenkins_home",
+                "Mode": "z",
+                "RW": true,
+                "Propagation": "rprivate"
+            }
+        ],
+        "Config": {
+            "Hostname": "23fcdbb55fbc",
+            "Domainname": "",
+            "User": "jenkins",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "ExposedPorts": {
+                "50000/tcp": {},
+                "8080/tcp": {}
+            },
+            "Tty": true,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/openjdk-8/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "LANG=C.UTF-8",
+                "JAVA_HOME=/usr/local/openjdk-8",
+                "JAVA_VERSION=8u232",
+                "JAVA_BASE_URL=https://github.com/AdoptOpenJDK/openjdk8-upstream-binaries/releases/download/jdk8u232-b09/OpenJDK8U-jdk_",
+                "JAVA_URL_VERSION=8u232b09",
+                "JENKINS_HOME=/var/jenkins_home",
+                "JENKINS_SLAVE_AGENT_PORT=50000",
+                "REF=/usr/share/jenkins/ref",
+                "JENKINS_VERSION=2.201",
+                "JENKINS_UC=https://updates.jenkins.io",
+                "JENKINS_UC_EXPERIMENTAL=https://updates.jenkins.io/experimental",
+                "JENKINS_INCREMENTALS_REPO_MIRROR=https://repo.jenkins-ci.org/incrementals",
+                "COPY_REFERENCE_FILE_LOG=/var/jenkins_home/copy_reference_file.log"
+            ],
+            "Cmd": null,
+            "Image": "jenkins/jenkins",
+            "Volumes": {
+                "/var/jenkins_home": {}
+            },
+            "WorkingDir": "",
+            "Entrypoint": [
+                "/sbin/tini",
+                "--",
+                "/usr/local/bin/jenkins.sh"
+            ],
+            "OnBuild": null,
+            "Labels": {}
+        },
+        "NetworkSettings": {
+            "Bridge": "",
+            "SandboxID": "ae8781a5e63e6b9c1dd56de81322a84046a2e129f0b6631175fb1a2bdd420b1e",
+            "HairpinMode": false,
+            "LinkLocalIPv6Address": "",
+            "LinkLocalIPv6PrefixLen": 0,
+            "Ports": {},
+            "SandboxKey": "/var/run/docker/netns/ae8781a5e63e",
+            "SecondaryIPAddresses": null,
+            "SecondaryIPv6Addresses": null,
+            "EndpointID": "",
+            "Gateway": "",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "IPAddress": "",
+            "IPPrefixLen": 0,
+            "IPv6Gateway": "",
+            "MacAddress": "",
+            "Networks": {
+                "bridge": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": null,
+                    "NetworkID": "0940dfb4258b2715ef76d8683a35182d490340ee4edcc6bc39c1f7174a528d4f",
+                    "EndpointID": "",
+                    "Gateway": "",
+                    "IPAddress": "",
+                    "IPPrefixLen": 0,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "MacAddress": "",
+                    "DriverOpts": null
+                }
+            }
+        }
+    }
+]
+
+C:\Users\20077794>docker run -d -p 49001:8080 -v /jenkins:/var/jenkins_home:z -t jenkins/jenkins
+5436f2277d13778847e60e0c289192ce2d5734240171050f2b61fad18fd59fb6
+
+C:\Users\20077794>docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+
+C:\Users\20077794>docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS                     PORTS               NAMES
+5436f2277d13        jenkins/jenkins     "/sbin/tini -- /usr/…"   2 minutes ago       Exited (1) 2 minutes ago                       sleepy_beaver
+23fcdbb55fbc        jenkins/jenkins     "/sbin/tini -- /usr/…"   2 hours ago         Exited (1) 2 hours ago                         boring_shamir
+2c6fdcc14cfb        hello-world         "/hello"                 2 hours ago         Exited (0) 2 hours ago                         intelligent_sanderson
+
+C:\Users\20077794>docker start 23fc
+23fc
+
+C:\Users\20077794>docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+
+C:\Users\20077794>docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS                      PORTS               NAMES
+5436f2277d13        jenkins/jenkins     "/sbin/tini -- /usr/…"   3 minutes ago       Exited (1) 3 minutes ago                        sleepy_beaver
+23fcdbb55fbc        jenkins/jenkins     "/sbin/tini -- /usr/…"   2 hours ago         Exited (1) 14 seconds ago                       boring_shamir
+2c6fdcc14cfb        hello-world         "/hello"                 2 hours ago         Exited (0) 2 hours ago                          intelligent_sanderson
+
+C:\Users\20077794>docker volume create jenkins_volume
+jenkins_volume
+
+C:\Users\20077794>docker inspect volume jenkins_volume
+[
+    {
+        "CreatedAt": "2019-10-22T13:09:32Z",
+        "Driver": "local",
+        "Labels": {},
+        "Mountpoint": "/var/lib/docker/volumes/jenkins_volume/_data",
+        "Name": "jenkins_volume",
+        "Options": {},
+        "Scope": "local"
+    }
+]
+Error: No such object: volume
+
+C:\Users\20077794>docker run -d -p 80:8080 -v jenkins_volume:/var/lib/jenkins --name firdous_jenkins jenkins
+a4cfe3cb5a0af29262ede9ebc42039eb5ab6491c5153d3b71adbe77ffc907ea7
+
+C:\Users\20077794>docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                             NAMES
+a4cfe3cb5a0a        jenkins             "/bin/tini -- /usr/l…"   5 seconds ago       Up 2 seconds        50000/tcp, 0.0.0.0:80->8080/tcp   firdous_jenkins
+
+C:\Users\20077794>docker ps --watch
+unknown flag: --watch
+See 'docker ps --help'.
+
+C:\Users\20077794>docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                             NAMES
+a4cfe3cb5a0a        jenkins             "/bin/tini -- /usr/l…"   20 seconds ago      Up 18 seconds       50000/tcp, 0.0.0.0:80->8080/tcp   firdous_jenkins
+
+C:\Users\20077794>docker inspect firdous_jenkins | grep IPAddr
+'grep' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\20077794>docker inspect firdous_jenkins
+[
+    {
+        "Id": "a4cfe3cb5a0af29262ede9ebc42039eb5ab6491c5153d3b71adbe77ffc907ea7",
+        "Created": "2019-10-22T13:12:28.0741689Z",
+        "Path": "/bin/tini",
+        "Args": [
+            "--",
+            "/usr/local/bin/jenkins.sh"
+        ],
+        "State": {
+            "Status": "running",
+            "Running": true,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 4130,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2019-10-22T13:12:30.5591058Z",
+            "FinishedAt": "0001-01-01T00:00:00Z"
+        },
+        "Image": "sha256:cd14cecfdb3a657ba7d05bea026e7ac8b9abafc6e5c66253ab327c7211fa6281",
+        "ResolvConfPath": "/var/lib/docker/containers/a4cfe3cb5a0af29262ede9ebc42039eb5ab6491c5153d3b71adbe77ffc907ea7/resolv.conf",
+        "HostnamePath": "/var/lib/docker/containers/a4cfe3cb5a0af29262ede9ebc42039eb5ab6491c5153d3b71adbe77ffc907ea7/hostname",
+        "HostsPath": "/var/lib/docker/containers/a4cfe3cb5a0af29262ede9ebc42039eb5ab6491c5153d3b71adbe77ffc907ea7/hosts",
+        "LogPath": "/var/lib/docker/containers/a4cfe3cb5a0af29262ede9ebc42039eb5ab6491c5153d3b71adbe77ffc907ea7/a4cfe3cb5a0af29262ede9ebc42039eb5ab6491c5153d3b71adbe77ffc907ea7-json.log",
+        "Name": "/firdous_jenkins",
+        "RestartCount": 0,
+        "Driver": "overlay2",
+        "Platform": "linux",
+        "MountLabel": "",
+        "ProcessLabel": "",
+        "AppArmorProfile": "",
+        "ExecIDs": null,
+        "HostConfig": {
+            "Binds": [
+                "jenkins_volume:/var/lib/jenkins"
+            ],
+            "ContainerIDFile": "",
+            "LogConfig": {
+                "Type": "json-file",
+                "Config": {}
+            },
+            "NetworkMode": "default",
+            "PortBindings": {
+                "8080/tcp": [
+                    {
+                        "HostIp": "",
+                        "HostPort": "80"
+                    }
+                ]
+            },
+            "RestartPolicy": {
+                "Name": "no",
+                "MaximumRetryCount": 0
+            },
+            "AutoRemove": false,
+            "VolumeDriver": "",
+            "VolumesFrom": null,
+            "CapAdd": null,
+            "CapDrop": null,
+            "Capabilities": null,
+            "Dns": [],
+            "DnsOptions": [],
+            "DnsSearch": [],
+            "ExtraHosts": null,
+            "GroupAdd": null,
+            "IpcMode": "private",
+            "Cgroup": "",
+            "Links": null,
+            "OomScoreAdj": 0,
+            "PidMode": "",
+            "Privileged": false,
+            "PublishAllPorts": false,
+            "ReadonlyRootfs": false,
+            "SecurityOpt": null,
+            "UTSMode": "",
+            "UsernsMode": "",
+            "ShmSize": 67108864,
+            "Runtime": "runc",
+            "ConsoleSize": [
+                52,
+                197
+            ],
+            "Isolation": "",
+            "CpuShares": 0,
+            "Memory": 0,
+            "NanoCpus": 0,
+            "CgroupParent": "",
+            "BlkioWeight": 0,
+            "BlkioWeightDevice": [],
+            "BlkioDeviceReadBps": null,
+            "BlkioDeviceWriteBps": null,
+            "BlkioDeviceReadIOps": null,
+            "BlkioDeviceWriteIOps": null,
+            "CpuPeriod": 0,
+            "CpuQuota": 0,
+            "CpuRealtimePeriod": 0,
+            "CpuRealtimeRuntime": 0,
+            "CpusetCpus": "",
+            "CpusetMems": "",
+            "Devices": [],
+            "DeviceCgroupRules": null,
+            "DeviceRequests": null,
+            "KernelMemory": 0,
+            "KernelMemoryTCP": 0,
+            "MemoryReservation": 0,
+            "MemorySwap": 0,
+            "MemorySwappiness": null,
+            "OomKillDisable": false,
+            "PidsLimit": null,
+            "Ulimits": null,
+            "CpuCount": 0,
+            "CpuPercent": 0,
+            "IOMaximumIOps": 0,
+            "IOMaximumBandwidth": 0,
+            "MaskedPaths": [
+                "/proc/asound",
+                "/proc/acpi",
+                "/proc/kcore",
+                "/proc/keys",
+                "/proc/latency_stats",
+                "/proc/timer_list",
+                "/proc/timer_stats",
+                "/proc/sched_debug",
+                "/proc/scsi",
+                "/sys/firmware"
+            ],
+            "ReadonlyPaths": [
+                "/proc/bus",
+                "/proc/fs",
+                "/proc/irq",
+                "/proc/sys",
+                "/proc/sysrq-trigger"
+            ]
+        },
+        "GraphDriver": {
+            "Data": {
+                "LowerDir": "/var/lib/docker/overlay2/98420ad3f099a946db453596d9e1dce98259e163bbc156859f016e0e3d042c46-init/diff:/var/lib/docker/overlay2/4e9d5101dfb9adedb0d4d35d656f1e02745d639b9163cfcea300c06907f67376/diff:/var/lib/docker/overlay2/02724b1be567f34c6cceb01728f5583a058c7b2fbbfb9aac19d8819ba2595354/diff:/var/lib/docker/overlay2/71cdb7e63f6a6df0fce092dafc3daa92008357096c60c9e2c58695a890acba1e/diff:/var/lib/docker/overlay2/a2f82fe79873aab901175a423c15e5c6ef17087b718ac188898ad535084a26d3/diff:/var/lib/docker/overlay2/ef7ca2683a89e217facb5ae51323cf6a0ca2a1c8800f61b4fcb2b715ddb2982c/diff:/var/lib/docker/overlay2/54f8c44206777d12cb9a4b3e99a17cff44b7a9aff09a77057a4dafb765a1fbc3/diff:/var/lib/docker/overlay2/18b00e69358e3010e403cc21cac85edd7ae3ab3b68c745e449e2e5fddd0d305a/diff:/var/lib/docker/overlay2/3f873b5584c1e416fdd842fd440f71f3fef4f75c98ef1038650346c90bcc44bc/diff:/var/lib/docker/overlay2/2c5cd6e7e2590e0aabd232c6965106170e72ccd08aebeac174e78914de9a9cf0/diff:/var/lib/docker/overlay2/5ae1fdfb0ddec59790dda271a8ca8ca1e78db0e021b39881590093183c4764fa/diff:/var/lib/docker/overlay2/cf76a4bfa84df906c60d7b701de1d6a32d2d8d2383db8bdf579ce499b4479cc5/diff:/var/lib/docker/overlay2/2d56dca86383af382fa2fa57c42c283ad6f859a24d73ba67db025f9b10894604/diff:/var/lib/docker/overlay2/f5b9c10102fe289fb5fc9e2dba9cc1438ad0f4dd803587cabc9d372c82741dce/diff:/var/lib/docker/overlay2/71ce66bf86456377f29bc628f427783bea9a2e3d717ff9c749ce46ed27c57eb8/diff:/var/lib/docker/overlay2/485b35cf8dd02ec4971c65973c29eea2b76fec1421724b3a193e609ea726139a/diff:/var/lib/docker/overlay2/71ed0382e238f69a70149d86ffd9a41e6ccb37f4fb75b24ac9a08c8945a25235/diff:/var/lib/docker/overlay2/c58a4ef738a7f7e1b7d4bf9e16c49e00a18c237493ea77b5eb6e5de2153f8f1f/diff:/var/lib/docker/overlay2/39fd4e00a1d8e9c0d277baee8d359b8f1b83d37fdd143bac5d85ef516f16fd22/diff:/var/lib/docker/overlay2/d9820ecf7b02ddba36d5fe514d97a69d572f51f2d62fd08b0f44177ecd61b221/diff:/var/lib/docker/overlay2/0e00337663ef1729e43214cca2c8b93a3826e03c398b96f61992a3d9aa64c315/diff",
+                "MergedDir": "/var/lib/docker/overlay2/98420ad3f099a946db453596d9e1dce98259e163bbc156859f016e0e3d042c46/merged",
+                "UpperDir": "/var/lib/docker/overlay2/98420ad3f099a946db453596d9e1dce98259e163bbc156859f016e0e3d042c46/diff",
+                "WorkDir": "/var/lib/docker/overlay2/98420ad3f099a946db453596d9e1dce98259e163bbc156859f016e0e3d042c46/work"
+            },
+            "Name": "overlay2"
+        },
+        "Mounts": [
+            {
+                "Type": "volume",
+                "Name": "jenkins_volume",
+                "Source": "/var/lib/docker/volumes/jenkins_volume/_data",
+                "Destination": "/var/lib/jenkins",
+                "Driver": "local",
+                "Mode": "z",
+                "RW": true,
+                "Propagation": ""
+            },
+            {
+                "Type": "volume",
+                "Name": "255a1f0bc0699dea421f890e7aeff15f41cf54ddd99111111f309813df519c96",
+                "Source": "/var/lib/docker/volumes/255a1f0bc0699dea421f890e7aeff15f41cf54ddd99111111f309813df519c96/_data",
+                "Destination": "/var/jenkins_home",
+                "Driver": "local",
+                "Mode": "",
+                "RW": true,
+                "Propagation": ""
+            }
+        ],
+        "Config": {
+            "Hostname": "a4cfe3cb5a0a",
+            "Domainname": "",
+            "User": "jenkins",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "ExposedPorts": {
+                "50000/tcp": {},
+                "8080/tcp": {}
+            },
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "LANG=C.UTF-8",
+                "JAVA_HOME=/docker-java-home",
+                "JAVA_VERSION=8u171",
+                "JAVA_DEBIAN_VERSION=8u171-b11-1~deb9u1",
+                "CA_CERTIFICATES_JAVA_VERSION=20170531+nmu1",
+                "JENKINS_HOME=/var/jenkins_home",
+                "JENKINS_SLAVE_AGENT_PORT=50000",
+                "TINI_VERSION=0.14.0",
+                "TINI_SHA=6c41ec7d33e857d4779f14d9c74924cab0c7973485d2972419a3b7c7620ff5fd",
+                "JENKINS_VERSION=2.60.3",
+                "JENKINS_UC=https://updates.jenkins.io",
+                "JENKINS_UC_EXPERIMENTAL=https://updates.jenkins.io/experimental",
+                "COPY_REFERENCE_FILE_LOG=/var/jenkins_home/copy_reference_file.log"
+            ],
+            "Cmd": null,
+            "Image": "jenkins",
+            "Volumes": {
+                "/var/jenkins_home": {}
+            },
+            "WorkingDir": "",
+            "Entrypoint": [
+                "/bin/tini",
+                "--",
+                "/usr/local/bin/jenkins.sh"
+            ],
+            "OnBuild": null,
+            "Labels": {}
+        },
+        "NetworkSettings": {
+            "Bridge": "",
+            "SandboxID": "26d68e8e62e2d649fe3454255e761e56f33b8f454fc50c653e052bd3fb574ebb",
+            "HairpinMode": false,
+            "LinkLocalIPv6Address": "",
+            "LinkLocalIPv6PrefixLen": 0,
+            "Ports": {
+                "50000/tcp": null,
+                "8080/tcp": [
+                    {
+                        "HostIp": "0.0.0.0",
+                        "HostPort": "80"
+                    }
+                ]
+            },
+            "SandboxKey": "/var/run/docker/netns/26d68e8e62e2",
+            "SecondaryIPAddresses": null,
+            "SecondaryIPv6Addresses": null,
+            "EndpointID": "2fb19c4524c5412b26a6544e753f427822ca3dd978837d43353528e31582cb4f",
+            "Gateway": "172.17.0.1",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "IPAddress": "172.17.0.2",
+            "IPPrefixLen": 16,
+            "IPv6Gateway": "",
+            "MacAddress": "02:42:ac:11:00:02",
+            "Networks": {
+                "bridge": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": null,
+                    "NetworkID": "0940dfb4258b2715ef76d8683a35182d490340ee4edcc6bc39c1f7174a528d4f",
+                    "EndpointID": "2fb19c4524c5412b26a6544e753f427822ca3dd978837d43353528e31582cb4f",
+                    "Gateway": "172.17.0.1",
+                    "IPAddress": "172.17.0.2",
+                    "IPPrefixLen": 16,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "MacAddress": "02:42:ac:11:00:02",
+                    "DriverOpts": null
+                }
+            }
+        }
+    }
+]
+
+C:\Users\20077794>ifconfig
+'ifconfig' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\20077794>ipconfig
+
+Windows IP Configuration
+
+
+Ethernet adapter vEthernet (DockerNAT):
+
+   Connection-specific DNS Suffix  . :
+   IPv4 Address. . . . . . . . . . . : 10.0.75.1
+   Subnet Mask . . . . . . . . . . . : 255.255.255.240
+   Default Gateway . . . . . . . . . :
+
+Ethernet adapter Ethernet:
+
+   Connection-specific DNS Suffix  . : lnties.com
+   Link-local IPv6 Address . . . . . : fe80::b478:32ba:a78:f463%16
+   IPv4 Address. . . . . . . . . . . : 10.7.29.84
+   Subnet Mask . . . . . . . . . . . : 255.255.255.0
+   Default Gateway . . . . . . . . . : 10.7.29.1
+
+Ethernet adapter vEthernet (Default Switch):
+
+   Connection-specific DNS Suffix  . :
+   Link-local IPv6 Address . . . . . : fe80::40d9:9f20:4131:ba52%2
+   IPv4 Address. . . . . . . . . . . : 172.31.88.209
+   Subnet Mask . . . . . . . . . . . : 255.255.255.240
+   Default Gateway . . . . . . . . . :
+
+Ethernet adapter vEthernet (nat):
+
+   Connection-specific DNS Suffix  . :
+   Link-local IPv6 Address . . . . . : fe80::fd8c:9e81:79ed:cefe%13
+   IPv4 Address. . . . . . . . . . . : 172.29.16.1
+   Subnet Mask . . . . . . . . . . . : 255.255.240.0
+   Default Gateway . . . . . . . . . :
+
+C:\Users\20077794>docker inspect volume jenkins_volume
+[
+    {
+        "CreatedAt": "2019-10-22T13:09:32Z",
+        "Driver": "local",
+        "Labels": {},
+        "Mountpoint": "/var/lib/docker/volumes/jenkins_volume/_data",
+        "Name": "jenkins_volume",
+        "Options": {},
+        "Scope": "local"
+    }
+]
+Error: No such object: volume
+
+C:\Users\20077794>ls jenkins_volume
+'ls' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\20077794>cd jenkins_volume
+The system cannot find the path specified.
+
+C:\Users\20077794>cd /var
+The system cannot find the path specified.
+
+C:\Users\20077794>ls
+'ls' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\20077794> docker exec -it firdous_jenkins
+"docker exec" requires at least 2 arguments.
+See 'docker exec --help'.
+
+Usage:  docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
+
+Run a command in a running container
+
+C:\Users\20077794>docker exec -it firdous_jenkins
+"docker exec" requires at least 2 arguments.
+See 'docker exec --help'.
+
+Usage:  docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
+
+Run a command in a running container
+
+C:\Users\20077794>docker run exec -it firdous_jenkins
+Unable to find image 'exec:latest' locally
+docker: Error response from daemon: pull access denied for exec, repository does not exist or may require 'docker login': denied: requested access to the resource is denied.
+See 'docker run --help'.
+
+C:\Users\20077794>docker run exec firdous_jenkins
+Unable to find image 'exec:latest' locally
+docker: Error response from daemon: pull access denied for exec, repository does not exist or may require 'docker login': denied: requested access to the resource is denied.
+See 'docker run --help'.
+
+C:\Users\20077794>docker firdous_jenkins
+docker: 'firdous_jenkins' is not a docker command.
+See 'docker --help'
+
+C:\Users\20077794>docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                             NAMES
+a4cfe3cb5a0a        jenkins             "/bin/tini -- /usr/l…"   14 minutes ago      Up 14 minutes       50000/tcp, 0.0.0.0:80->8080/tcp   firdous_jenkins
+
+C:\Users\20077794>docker exec /bin/bash
+"docker exec" requires at least 2 arguments.
+See 'docker exec --help'.
+
+Usage:  docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
+
+Run a command in a running container
+
+C:\Users\20077794>docker exec -it firdous_jenkins /bin/bash
+jenkins@a4cfe3cb5a0a:/$ exit
+exit
+
+C:\Users\20077794>cat /var/jenkins_home/secrets/initialAdminPassword
+'cat' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\20077794>docker exec -it firdous_jenkins /bin/bash
+jenkins@a4cfe3cb5a0a:/$ ls /var/jenkins_home/secrets/
+filepath-filters.d              initialAdminPassword                    master.key                                                         whitelisted-callables.d
+hudson.console.ConsoleNote.MAC  jenkins.model.Jenkins.crumbSalt         org.jenkinsci.main.modules.instance_identity.InstanceIdentity.KEY
+hudson.util.Secret              jenkins.security.ApiTokenProperty.seed  slave-to-master-security-kill-switch
+jenkins@a4cfe3cb5a0a:/$ ls /var/jenkins_home/secrets/initialAdminPassword
+/var/jenkins_home/secrets/initialAdminPassword
+jenkins@a4cfe3cb5a0a:/$ ls
+bin  boot  dev  docker-java-home  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+jenkins@a4cfe3cb5a0a:/$ cat /var/jenkins_home/secrets/initialAdminPassword
+d4f3932a033a4b4a835840ca3bda2082
+jenkins@a4cfe3cb5a0a:/$ cd home
+jenkins@a4cfe3cb5a0a:/home$ ls
+jenkins@a4cfe3cb5a0a:/home$
+
+
+
+
+
+
+
+
+

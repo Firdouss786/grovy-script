@@ -1,0 +1,104 @@
+node{
+ 
+      ws('C:\\7_DAT2\\MRR_Pipe') {
+        
+        iDir = "${WORKSPACE}\\cov-idir"
+        Plastic_Workspace_Path = "${WORKSPACE}\\${JOB_NAME}"
+        echo '${Plastic_Workspace_Path}'
+        stage('Clean Previous Changes'){
+            // cleanWs()
+            // cleanup intermediate directory after commit was made (optional space saving step)
+            dir("${iDir}") {
+                deleteDir()
+            }
+            if (fileExists("${JOB_NAME}\\.plastic\\plastic.workspace")) {
+                dir("${JOB_NAME}"){
+                    bat "cm unco --all"
+                }
+            }
+        }
+         stage('Create Plastic Workspace') {
+            cm branch: '/main', changelog: true, poll: true, repository: '10031595_MY21_Ford_DAT_SRR_S', server: 'plasticscm_prod1.delphiauto.net:8087', useUpdate: true, workspaceName: '${JOB_NAME}'
+        
+            stash includes: 'SRR_Pipeline\\**\\*', name: 'wk', useDefaultExcludes: false
+        }
+           try{
+            boolean continuePipeline = true
+        stage('Compile') {
+                dir("${JOB_NAME}\\RR_ADAS\\Make\\RR_MRR_VGTT"){
+                withEnv(['LM_LICENSE_FILE=7582@uskoaa17.usinkok.northamerica.delphiauto.net;7580@kswlic01.delcoelect.com']){
+                    bat "..\\..\\..\\RR_Build_Tools\\MTSA_MAK\\01.ToolFiles\\gnumake.exe -f Makefile clean"
+                    bat "..\\..\\..\\RR_Build_Tools\\MTSA_MAK\\01.ToolFiles\\gnumake.exe -f Makefile"
+                
+                    stash includes: 'SRR_Piprline\\Outputs\\RR_MRR_VGTT\\PBL\\Products\\PBL.ptp', name: 'ptp'
+                }
+            }
+        }}catch(Exception e) {
+        println "Jira issue will be raising "+ e 
+
+   continuePipeline = false
+   currentBuild.result = 'SUCCESS'
+    }
+  }
+}
+    node('Coverity_Node'){
+     try{
+            boolean continuePipeline = true
+     stage('Coverity'){
+         unstash 'wk'
+            withCoverityEnv('default') {
+                def covHome = tool name: 'default', type: 'coverity'
+                // use a variable for the shared intermediate directory
+                dir("${JOB_NAME}\\RR_ADAS\\Make\\RR_MRR_VGTT") {
+                    // run cov-build capture command
+                    bat "..\\..\\..\\RR_Build_Tools\\MTSA_MAK\\01.ToolFiles\\gnumake.exe -f Makefile clean"
+                    bat "cov-build --dir \"${iDir}\" build.bat"
+                }
+                // run cov-analyze command
+                bat "cov-analyze --dir \"${iDir}\" --security --concurrency --enable-fnptr --enable-virtual --enable-constraint-fpp --checker-option DEADCODE:no_dead_default:true -en ALLOC_FREE_MISMATCH --checker-option STACK_USE:max_total_use_bytes:6144 -en DC.STRING_BUFFER -en INCOMPATIBLE_CAST -en STACK_USE -en SYMBIAN.CLEANUP_STACK -en USER_POINTER -en DIVIDE_BY_ZERO --checker-option RESOURCE_LEAK:allow_main:true --strip-path /7_DAT2/MRR/MRR --paths 50000"
+            }
+        }   
+    } catch(Exception e) {
+   // Do something with the exception 
+     println "Jira issue will be raising "+ e
+   continuePipeline = false
+   currentBuild.result = 'SUCCESS'
+    }
+        
+    }
+    
+      node('TestNode1'){
+        try{
+            boolean continuePipeline = true
+        stage('TestParallel') {
+             unstash 'ptp'
+             var = readFile 'pipeline_dat_MRR2.0\\PBL.ptp'
+             println var
+                parallel (
+                    "Running QAC" :{
+                        
+                        def build_qac = build job: 'QAC_SRR',propagate: false 
+                        println "building QAC in "+ build_qac
+                        currentBuild.result = build_qac.result
+                    },
+                    "Running VectorCast" : {
+                        sleep 30
+                        bat "echo I'm VectorCast I'm doing my Job here"
+                    },
+                    
+                    "TestStage" : {
+                        sleep 15
+                        echo "${WORKSPACE}"
+                    }
+                )
+            
+        }} catch(Exception e) {
+   // Do something with the exception 
+     println "Jira issue will be raising "+ e
+   continuePipeline = false
+   currentBuild.result = 'SUCCESS'
+    }
+    
+   
+    }
+          

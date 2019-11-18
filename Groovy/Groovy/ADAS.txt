@@ -1,0 +1,252 @@
+pipeline {
+    agent {
+      label "master"
+    }
+    
+    environment {
+        COMPILE_NODE = "Aurix_ECU"
+        ECU_NODE = "Aurix_ECU"
+        COVERITY_NODE = "Aurix_ECU"
+        QAC_NODE = "Aurix_ECU"
+	    VECTOR_NODE = "Aurix_ECU"
+	    BUILD_MANAGER = 'vijaykumar.essam@aptiv.com'
+        PROJECT_TECH_LEAD = 'luke.welch@aptiv.com'
+        PLASTIC_PROJECT_NAME = '10031600_MY21_Ford_DAT2_ADAS_HOST'
+        COVERITY_PROJECT_NAME = '10031600_MY21_Ford_DAT2_ADAS_HOST'
+        JIRA_PROJECT_KEY = 'APS'
+        END_MODEL = 'P702'
+        PLASTIC_SERVER = 'plasticscm_prod1.delphiauto.net:8087'
+        PLASTIC_MAIN = "DAT2_ADAS_Aurix_CI_StageB"
+        PLASTIC_WORKSPACE = "${env.WorkspacePath2Use}\\${PLASTIC_MAIN}"
+        
+    	COVERITY_SERVER = 'coverity.northamerica.delphiauto.net'
+	    COV_PORT = "8087"
+	    COV_STREAM = "10031600_test_adas_ecu_host_misra_all"
+	    COVERITY_PASSPHRASE = "comitter"
+    	COV_USER			= "comitter"
+    	
+        COV_iDir = "${env.WorkspacePath2Use}\\cov-idir"
+        COMPILE_PATH = "${PLASTIC_WORKSPACE}\\build_files\\aptiv_specific\\python_scripts"
+        LICENCE = "LM_LICENSE_FILE=7582@uskoaa17.usinkok.northamerica.delphiauto.net;7580@kswlic01.delcoelect.com"
+        GLOBAL_TOOL_PATH = "PATH=C:\\Python27;C:\\Program Files\\Coverity\\Coverity_8.5\\bin;c:\\perl64\\bin;C:\\Windows\\system32"
+        CLOC_PATH = "PATH=C:\\Program Files\\Cloc;C:\\Windows\\System32"
+        PLASTIC_PATH = "PATH=C:\\Program Files\\PlasticSCM5\\client;C:\\Windows\\system32"
+        COMMON_REPORT_GEN_PATH = "${PLASTIC_WORKSPACE}\\build_files\\aptiv_specific\\dynamic_reports\\${END_MODEL}"
+        PYTHON_LIBS_FOLDER = "${PLASTIC_WORKSPACE}\\build_files\\shared\\python_scripts\\as_python_libs"
+    }
+    
+    stages {
+        stage("GetLatestCode"){
+            steps{
+                node("${COMPILE_NODE}"){
+                    ws(env.WorkspacePath2Use){
+                        script{
+                            if (fileExists("${PLASTIC_MAIN}\\.plastic\\plastic.workspace")){
+                                dir("${PLASTIC_MAIN}"){
+                                    withEnv(["${PLASTIC_PATH}"]){
+                                    bat "cm unco --all"
+                                    }
+                                }
+                            }
+                           cm branch:"${env.DevelopmentBranch}",repository: "${PLASTIC_PROJECT_NAME}", server: "${PLASTIC_SERVER}",useUpdate: true, workspaceName: "${PLASTIC_MAIN}"
+                        }
+		            }
+                }
+            }
+        }
+        
+        stage("CodeCompilation"){
+            steps {
+                node("${COMPILE_NODE}") {
+                    ws("${env.WorkspacePath2Use}\\${PLASTIC_MAIN}"){
+                        script{
+
+                            dir("${COMPILE_PATH}"){
+                                withEnv(["${LICENCE}", "${GLOBAL_TOOL_PATH}"]) {
+                                     try{
+                                             bat 'python aptiv_host_build.py -jenkins -val_temp build -clib ALL -lib ALL -capp -app'
+                                             COMPILE_BLOCK_FLAG = "This build was successfully compiled without Template flag (-ff_ac_temp)"
+									    }
+								        catch (err)
+									    {
+    									    bat 'python aptiv_host_build.py -jenkins -ff_ac_temp -val_temp build -clib ALL -lib ALL -capp -app'
+    									    COMPILE_BLOCK_FLAG = "This build was compiled with template flag (-ff_ac_temp) since compilation without it was failed"
+									    }
+									    echo "${COMPILE_BLOCK_FLAG}"
+                                }
+                            }
+                            withEnv(["${CLOC_PATH}"]) {
+                                bat "cloc-1.76.exe  --by-file --include-lang=C,C++,\"C/C++ Header\",Assembly --xml --out=cloc.xml ./build_files/aptiv_specific/output/P702/A_APP ./build_files/aptiv_specific/output/P702/AS_FW ./aptiv_sw/integration/swc/ford_features"
+                                bat "xsltproc \"C:\\Program Files\\Cloc\\cloc2sloccount.xsl\" cloc.xml > sloccount.sc"
+                                sloccountPublish encoding: '', ignoreBuildFailure: true, pattern: 'sloccount.sc'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+      
+        stage('IntegrationTests'){
+            parallel{
+                stage("CoverityTest"){
+                    agent{
+                        label 'Aurix_ECU'
+                    }
+                    steps{
+                        ws("${env.WorkspacePath2Use}"){
+                            script{
+                                sleep 10
+                                if (fileExists("${COV_iDir}")){
+                                    dir("${COV_iDir}"){
+                                        deleteDir()
+                                    }
+                                }
+                                withCoverityEnv('Coverity_2018_01') {
+    						        withEnv(['set LM_LICENSE_FILE=7582@uskoaa17.usinkok.northamerica.delphiauto.net;7580@kswlic01.delcoelect.com']){
+        						        def covHome = tool name: 'Coverity_2018_01', type: 'coverity'
+        						        dir("${PLASTIC_WORKSPACE}\\build_files\\aptiv_specific\\python_scripts"){
+                    						bat 'python aptiv_host_build.py coverity -cov_clean'
+                    						bat "echo python aptiv_host_build.py coverity -cov_build>cov_build_temp_bat.bat"
+                    						bat "cov-build --dir \"${COV_iDir}\" cov_build_temp_bat.bat" 
+                    						bat "cov-analyze --dir \"${COV_iDir}\" --security --concurrency --enable-fnptr --enable-virtual --enable-constraint-fpp --checker-option DEADCODE:no_dead_default:true -en ALLOC_FREE_MISMATCH --checker-option STACK_USE:max_total_use_bytes:6144 -en DC.STRING_BUFFER -en INCOMPATIBLE_CAST -en STACK_USE -en USER_POINTER -en DIVIDE_BY_ZERO --checker-option RESOURCE_LEAK:allow_main:true --strip-path /7_DAT2/AURIX/CI/DAT2_ADAS_Aurix_CI_StageB --paths 50000"
+                    						bat"cov-commit-defects --dir \"${COV_iDir}\" --stream \"${COV_STREAM}\" --host \"${COVERITY_SERVER}\" --user comitter --password comitter"
+                    						coverityResults connectInstance: 'Coverity_2017', connectView: 'New Outstanding Defects Today', projectId: '10031600_test_adas_ecu_host_misra_all_', unstable: true
+                    						coverityResults connectInstance: 'Coverity_2017', connectView: 'Outstanding Defects', projectId: '10031600_test_adas_ecu_host_misra_all_', unstable: false
+
+                                            
+                                            dir("${PYTHON_LIBS_FOLDER}\\Coverity_Reporter"){
+                                               bat'python Coverity_Reporter.py -u  sid_actsfy_sw -p Leejol33 -cprj 10031600_MY21_Ford_DAT2_ADAS_HOST -csu http://coverity.northamerica.delphiauto.net:8080/api/viewContents/'
+                                               archiveArtifacts '*.html'
+                                        }
+                                            
+            						  }
+                        	        }
+    					        } 
+                            } 
+                        }
+                                
+                    }
+                }
+                
+                stage("Statistics"){
+                    agent{
+                        label 'Aurix_ECU'
+                    }
+                    steps{
+                        dir("${COMPILE_PATH}"){
+                            bat "python aptiv_host_build.py integration_test"
+                            dir("${COMMON_REPORT_GEN_PATH}"){
+                                //step([$class: 'hudson.plugins.plotpipeline.PlotBuilder', csvFileName: 'plot-36969054.csv', exclZero: false, group: 'Statistics', keepRecords: false, logarithmic: false, numBuilds: '30', style: 'line', title: 'Stack Usage', useDescr: false, xmlSeries: [[file: 'stack_usage_report.html', nodeType: 'NODESET', url: '', xpath: '//PlotReport[1]/*']], yaxis: '', yaxisMaximum: '', yaxisMinimum: ''])
+                                step([$class: 'hudson.plugins.plotpipeline.PlotBuilder', csvFileName: 'plot-13158385.csv', exclZero: false, group: 'Statistics', keepRecords: false, logarithmic: false, numBuilds: '30', style: 'line', title: 'Throughput Statistics', useDescr: false, xmlSeries: [[file: 'throughput_report.html', nodeType: 'NODESET', url: '', xpath: '//PlotReport[1]/*']], yaxis: '', yaxisMaximum: '', yaxisMinimum: ''])
+                                step([$class: 'hudson.plugins.plotpipeline.PlotBuilder', csvFileName: 'plot-67866661.csv', exclZero: false, group: 'Statistics', keepRecords: false, logarithmic: false, numBuilds: '30', style: 'line', title: 'Stack Statistics', useDescr: false, xmlSeries: [[file: 'stack_usage_report.html', nodeType: 'NODESET', url: '', xpath: '//PlotReport[1]/*']], yaxis: '', yaxisMaximum: '', yaxisMinimum: ''])
+                                archiveArtifacts '**//*'
+                                junit allowEmptyResults: true, testResults: '*.xml,'
+                            }
+                            
+                        }
+                    }
+                }
+                
+                stage("VectorCast_Test"){
+                    agent{
+                        label 'Aurix_ECU'
+                    }
+                    steps{
+                        echo "once .vcm project is ready from Development then pipeline script should be generated based on that and added here"
+                        //step([$class: 'VectorCASTSetup', environmentSetupUnix: '', environmentSetupWin: '', environmentTeardownUnix: '', environmentTeardownWin: '', executePreambleUnix: '', executePreambleWin: '', jobName: '', manageProjectName: 'Vectorcast\\project.vcm', nodeLabel: '', optionClean: false, optionErrorLevel: 'Unstable', optionExecutionReport: true, optionHtmlBuildDesc: 'HTML', optionUseReporting: true, waitLoops: 10, waitTime: 240])
+
+                    }
+                }
+
+                stage("Hardware_Tests"){
+                    agent{
+                        label "Aurix_ECU"
+                    }
+                    steps{
+                        script{
+                            ECU_WORKSPACE = "${env.WorkspacePath2Use}_ECU"
+                            script{
+                                    ws(ECU_WORKSPACE){
+                                            //deleteDir()
+                                        echo "in Hardware_Tests"
+                                    }
+				                
+                            }
+                        }
+                    }
+                    post{
+                        always{
+                            dir("${ECU_WORKSPACE}"){
+                                //plot csvFileName: 'plot-8a85bc21-7a4b-47a1-9a30-072e0978e68e.csv', exclZero: false, group: 'Statistics', keepRecords: false, logarithmic: false, numBuilds: '30', style: 'line', title: 'Hardware Statistics', useDescr: false, xmlSeries: [[file: "_Build\\${env.VehicleModel}\\Gen\\Statistics_Report.html", nodeType: 'NODESET', url: '', xpath: '//PlotReport[1]/*']], yaxis: '', yaxisMaximum: '', yaxisMinimum: ''
+                                //archiveArtifacts "_Build//${env.VehicleModel}//Gen//**//*"
+                                //junit allowEmptyResults: false, testResults: "_Build/${env.VehicleModel}/Gen/**/*.xml,"
+                                //junit allowEmptyResults: false, testResults: "Tools/Python_Scripts/CS+/Reports/**/*.xml,"
+                               // stash includes: "_Build/${env.VehicleModel}/Gen/**/*.xml, Tools/Python_Scripts/CS+/Reports/**/*.xml", name: 'HardwareTestResults'
+                                //plot csvFileName: 'plot-2699afc7-eb3e-4846-90d0-1156f3a29c8c.csv', xmlSeries: [[file: '${ECU_WORKSPACE}\\_Build\\${env.VehicleModel}\\Gen\\Statistics_Report.html', nodeType: 'NODESET', url: '', xpath: '//PlotReport[1]/*']], csvSeries: [[displayTableFlag: false, exclusionValues: '', file: '', inclusionFlag: 'OFF', url: '']], propertiesSeries: [[file: '', label: '']],
+                                //                    exclZero: false, group: 'Statistics', keepRecords: false, logarithmic: false, numBuilds: '30', 
+                                //                    style: 'line', title: 'ECU Usage Statistics',  useDescr: false, yaxis: 'Percentage', yaxisMaximum: '', yaxisMinimum: ''
+                                //step([$class: 'hudson.plugins.plotpipeline.PlotBuilder', csvFileName: 'plot-16580982.csv', exclZero: false, group: 'Statistics', keepRecords: false, logarithmic: false, numBuilds: '30', style: 'line', title: 'Hardware Usage', useDescr: false, xmlSeries: [[file: "_Build\\${env.VehicleModel}\\Gen\\Statistics_Report.html", nodeType: 'NODESET', url: '', xpath: '//PlotReport[1]/*']], yaxis: '', yaxisMaximum: '', yaxisMinimum: ''])
+
+				            }
+                        }
+
+                    }
+                }
+                
+                stage(CAN_Tests){
+                    agent{
+                        label "Aurix_ECU"
+                    }
+                    steps{
+                        script{
+                        ecu_work = "${env.WorkspacePath2Use}_ECU"
+                            ws(ecu_work){
+                                echo "Can tests will be implemented"       
+                            
+                            }
+                        
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage("ReportToJira"){
+            agent{
+                label "Aurix_ECU"
+            }
+            steps{
+                script{
+                    JIRA_REPORT_PATH = "${env.WorkspacePath2Use}\\${PLASTIC_MAIN}"
+                    ws("${JIRA_REPORT_PATH}"){
+                        dir('JUnitReports'){
+                           // unstash name: 'HardwareTestResults'
+                            //build job: 'TestReports', parameters: [string(name: 'WorkspacePath2Use', value: "${JIRA_REPORT_PATH}")], propagate: false
+                        }
+                    }
+                }
+            }
+        }
+    }
+      
+    post{
+        always{
+            // warnings canComputeNew: false, canResolveRelativePaths: false, categoriesPattern: '', consoleParsers: [[parserName: 'TASKING VX Compiler']], defaultEncoding: '', excludePattern: '.*/FF_AC/.*', healthy: '', includePattern: '', messagesPattern: '', unHealthy: ''
+            warnings canResolveRelativePaths: false, categoriesPattern: '', consoleParsers: [[parserName: 'TASKING VX Compiler']], defaultEncoding: '', excludePattern: '.*/FF_AC/.*', healthy: '', includePattern: '', messagesPattern: '', unHealthy: '', unstableNewAll: '0', usePreviousBuildAsReference: true
+
+        }
+
+        changed{
+            emailext body: '$DEFAULT_CONTENT', recipientProviders: [[$class: 'CulpritsRecipientProvider'], [$class: 'DevelopersRecipientProvider']], subject: '$DEFAULT_SUBJECT', to: "${BUILD_MANAGER} ${PROJECT_TECH_LEAD}"
+        }
+        
+        //failure{
+        //    script{
+              //  emailext body: '''$DEFAULT_CONTENT 
+              //  ''', postsendScript: '$DEFAULT_POSTSEND_SCRIPT', recipientProviders: [[$class: 'CulpritsRecipientProvider'], [$class: 'DevelopersRecipientProvider']], subject: '$DEFAULT_SUBJECT', to: "${BUILD_MANAGER}"
+      
+		//		}
+        // }
+
+    }
+}

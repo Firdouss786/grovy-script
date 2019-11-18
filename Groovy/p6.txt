@@ -1,0 +1,49 @@
+pipeline {
+    agent {
+      label "master"
+    }
+    
+    environment {
+        COMPILE_NODE = "Slave_1"
+        ECU_NODE = "FCA_ECU"
+        COVERITY_NODE = "Slave_1"
+        QAC_NODE = "Slave_1"
+	    VECTOR_NODE = "Slave_1"
+
+
+    }
+    
+    stages {
+
+        stage("CodeCompilation"){
+            steps {
+                echo "Nothing"
+
+            }
+        }
+      
+        stage('IntegrationTests'){
+
+            parallel{
+                stage('test1'){
+                    agent{
+                        label "master"
+                    }
+                steps{
+                    echo "lkldsjflskdjflksdjf"
+                }
+                }
+                stage('test22'){
+                    agent{
+                        label "master"
+                    }
+                  steps{
+                    echo "Place Holder for VectorCast UnitTest Execution"
+                  }
+                  }
+                }
+                
+        }
+    }
+      
+}

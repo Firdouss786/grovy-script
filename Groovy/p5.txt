@@ -1,0 +1,31 @@
+pipeline {
+    agent {
+      label "master"
+    }
+
+    stages {
+        stage("EmailUser"){
+            steps{ 
+                script{
+                    BUILD_MANAGER = 'venkataprakash.kottur.gopalan@aptiv.com'
+                    PROJECT_TECH_LEAD = 'venkataprakash.kottur.gopalan@aptiv.com'
+                    def jobName = currentBuild.fullDisplayName
+                    
+                    emailext body:'''${JELLY_SCRIPT, template="customisedemail.jelly"}''',
+                    mimeType: 'text/html',
+                    subject: "[Jenkins] ALERT: JOB NEED ACTION: ${jobName}",
+                    to: "cc:${BUILD_MANAGER}, cc:${PROJECT_TECH_LEAD}"//,
+    
+                    def userInput = input message: "${env.Alert_user}?", parameters: [string(defaultValue: 'y', description: '', name: 'user_selection', trim: false)]
+    
+                    env.Alert_user = userInput
+                }
+            }
+        }
+    }           
+    //echo "Hello, ${Alert_user}, nice to meet you."
+                    
+    
+}
+
+

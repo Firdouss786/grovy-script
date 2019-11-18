@@ -1,0 +1,45 @@
+pipeline {
+    agent {
+      label "master"
+    }
+    environment {
+        temp = "C://6_FCA//FCA_PIPE"
+        VehicleModel= "DT"
+    }
+    stages{
+        stage("test_junit_ar"){
+            steps{
+                node("master"){
+                    ws(temp){
+                        bat "dir"
+                    
+                    dir("${temp}_ECU"){
+                    withEnv(['PATH=C:\\Program Files\\Cloc;C:\\Windows\\System32']) {
+                        bat "cloc-1.58.exe --exclude-dir=_Build --by-file --xml --out=cloc.xml ."
+                        bat "xsltproc \"C:\\Program Files\\Cloc\\cloc2sloccount.xsl\" cloc.xml > sloccount.sc"
+                        sloccountPublish encoding: '', ignoreBuildFailure: true, pattern: 'sloccount.sc'
+		                coverityResults connectInstance: 'Coverity_2017', connectView: 'Outstanding Defects', projectId: '10029627_MY19_FCA_IRCM_HOST', unstable: true
+
+
+
+                    }
+                    // plot csvFileName: 'plot-8a85bc21-7a4b-47a1-9a30-072e0978e68e.csv', exclZero: false, group: 'Statistics', keepRecords: false, logarithmic: false, numBuilds: '30', style: 'line', title: 'Hardware Statistics', useDescr: false, xmlSeries: [[file: '${temp}_ECU\\_Build\\${env.VehicleModel}\\Gen\\Statistics_Report.html', nodeType: 'NODESET', url: '', xpath: '//PlotReport[1]/*']], yaxis: '', yaxisMaximum: '', yaxisMinimum: ''
+                    
+                    step([$class: 'hudson.plugins.plotpipeline.PlotBuilder', csvFileName: 'plot-16580982.csv', exclZero: false, group: 'Statistics', keepRecords: false, logarithmic: false, numBuilds: '30', style: 'lineSimple', title: 'Hardware Usage', useDescr: false, xmlSeries: [[file: "_Build\\${VehicleModel}\\Gen\\Statistics_Report.html", nodeType: 'NODESET', url: '', xpath: '//PlotReport[1]/*']], yaxis: '', yaxisMaximum: '', yaxisMinimum: ''])
+                    
+                    
+                    //plot csvFileName: 'plot-2699afc7-eb3e-4846-90d0-1156f3a29c8c.csv', xmlSeries: [[file: '_Build\\${VehicleModel}\\Gen\\Statistics_Report.html', nodeType: 'NODESET', url: '', xpath: '//PlotReport[1]/*']],
+                    //                                exclZero: false, group: 'Statistics', keepRecords: false, logarithmic: false, numBuilds: '30', 
+                    //                                style: 'line', title: 'ECU Usage Statistics',  useDescr: false, yaxis: 'Percentage', yaxisMaximum: '', yaxisMinimum: ''
+                    //archiveArtifacts "_Build//${VehicleModel}//Gen//**//*"
+                    //echo "archive done"
+                    //junit allowEmptyResults: false, testResults: "_Build/${VehicleModel}/Gen/**/*.xml,"
+                    }
+
+
+                    }
+                }
+            }
+        }
+    }
+}

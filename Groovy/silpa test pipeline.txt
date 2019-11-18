@@ -1,0 +1,35 @@
+pipeline {
+    agent{label "master"}
+    environment{
+       //BATCH_FILE_PATH = "C:\\Users\\sjhb55\\Desktop"
+        
+        PLASTIC_SERVER = 'plasticscm_prod1.delphiauto.net:8087'
+       // PLASTIC_MAIN = "tutorial"
+        BATCH_FILE_PATH = "C:\\Users\\sjhb55\\wkspaces\\tutorial"
+    }    
+stages{
+    stage('print hello'){
+    steps{
+        echo 'hello'
+    }
+    }
+    
+    stage('test'){
+        steps{
+            dir("${BATCH_FILE_PATH}"){
+            bat 'cd'
+            //bat 'dir'
+            bat 'new.bat'
+            }
+
+            }
+        }
+
+    stage('Mail'){
+        steps{
+            mail bcc: '', body: 'mail sending successful', cc: '', from: '', replyTo: '', subject: 'mail', to: 'silpa.gadikota@aptiv.com'
+
+        }
+    }
+}
+}

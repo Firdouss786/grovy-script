@@ -1,0 +1,250 @@
+pipeline {
+    agent {
+      label "Slave_1"
+    }
+    
+    environment {
+        COMPILE_NODE = "Slave_1"
+        COVERITY_NODE = "Slave_1"
+        QAC_NODE = "Slave_1"
+	    VECTOR_NODE = "Slave_1"
+		BUILD_MANAGER = 'raghu.billapati@aptiv.com'
+        PROJECT_TECH_LEAD = 'joseph.h.bridenthal@aptiv.com'
+        PLASTIC_PROJECT_NAME = '10029627_MY20_FCA_IRCM_HOST'
+        COVERITY_PROJECT_NAME = '10029627_MY19_FCA_IRCM_HOST'
+        JIRA_PROJECT_KEY = 'AEX'
+        PLASTIC_SERVER = 'plasticscm_prod1.delphiauto.net:8087'
+        PLASTIC_MAIN = "FCA_Plastic_${env.VehicleModel}"
+        PLASTIC_WORKSPACE = "${env.WorkspacePath2Use}\\${PLASTIC_MAIN}"
+		CLOC_PATH = "PATH=C:\\Program Files\\Cloc;C:\\Windows\\System32"
+		PLASTIC_PATH = "PATH=C:\\Program Files\\PlasticSCM5\\client;C:\\Windows\\system32"
+		LICENCE = "LM_LICENSE_FILE=7582@uskoaa17.usinkok.northamerica.delphiauto.net;7580@kswlic01.delcoelect.com"
+        GLOBAL_TOOL_PATH = "PATH=C:\\Python27;C:\\Coverity\\2018_01\\bin;c:\\perl64\\bin;C:\\Windows\\system32"
+    	COVERITY_SERVER = 'coverity.northamerica.delphiauto.net'
+	    COV_PORT = "8087"
+	    COV_STREAM = "10029627_MY19_FCA_IRCM_HOST_${env.VehicleModel}"
+	    COVERITY_PASSPHRASE = "comitter"
+    	COV_USER			= "comitter"
+    	COV_iDir = "${env.WorkspacePath2Use}\\cov-idir"
+		jar_new_issues = "C:\\Program Files (x86)\\Jenkins\\Softwares\\GetNewCoverityIssues"
+		PYTHON_LIBS_FOLDER = "${PLASTIC_WORKSPACE}\\Tools\\Python_Reuse_Scripts"
+	
+    }
+    
+    stages {
+        stage("GetLatestCode"){
+            steps{
+                node("${COMPILE_NODE}"){
+                    ws(env.WorkspacePath2Use){
+                        script{
+                            if (fileExists("${PLASTIC_MAIN}\\.plastic\\plastic.workspace")){
+                                echo "${PLASTIC_MAIN}\\.plastic\\plastic.workspace"
+                                dir("${PLASTIC_MAIN}"){
+                                    withEnv(["${PLASTIC_PATH}"]){
+                                    bat "cm unco --all"
+                                    }
+                                }
+                            }
+                            cm branch:"${env.ReleasingBranch}",repository: "${PLASTIC_PROJECT_NAME}", server: "${PLASTIC_SERVER}",useUpdate: false,workspaceName: "${PLASTIC_MAIN}"
+                        }
+		            }
+                }
+            }
+        }
+        
+        stage("CodeCompilation"){
+            steps {
+                node("${COMPILE_NODE}") {
+                    ws("${env.WorkspacePath2Use}\\${PLASTIC_MAIN}"){
+                        script{
+                            withEnv(["${CLOC_PATH}"]) {                               
+                                bat "cloc-1.76.exe --exclude-dir=_Build,Tools,MTSA_MAK,unit_test --include-lang=C,C++,\"C/C++ Header\",Assembly --by-file --xml --out=cloc.xml ."
+                                // bat "xsltproc \"C:\\Program Files\\Cloc\\cloc2sloccount.xsl\" cloc.xml > sloccount.sc"
+                                //sloccountPublish encoding: '', ignoreBuildFailure: true, pattern: 'sloccount.sc'
+                                sloccountPublish encoding: '', ignoreBuildFailure: true, pattern: 'cloc.xml'
+                                
+                            }
+                            dir("Make_Files"){
+                                withEnv(["${LICENCE}", "${GLOBAL_TOOL_PATH}"]) {
+                                    bat 'python FCA_IRCM_Host_Build.py -bypass_report_gen -model %VehicleModel% build -cbuild'
+                                    archiveArtifacts '/*.xls'
+                                }
+                            }
+                        }
+				        stash includes: "_Build\\${env.VehicleModel}\\Exe\\**\\*", name: 'CompiledFiles'
+				        stash includes: "Plastic\\**\\*, Tools\\Python_Scripts\\**\\* , _Inc\\**\\*, Tools\\Python_Reuse_Scripts\\**\\* , Tools\\PTP\\**\\* , Tools\\HexView\\**\\*, Tools\\CANalyzer_Config\\**\\*, Tools\\CAPL_Scripts\\**\\*, Tools\\CubSuite_Plus_Project\\**\\*, Tools\\Cloc\\**\\*, Tools\\Gstack_Analysis\\**\\*, Make_Files\\**\\*, MTSA_MAK\\**\\*, CANGen_${env.VehicleModel}\\_inc\\**\\*, CANGen_${env.VehicleModel}\\cdd\\**\\*, CANGen_${env.VehicleModel}\\dbc\\**\\*, Application\\SPI_IPC_Manager\\_inc\\**\\*, Application\\Calibrations\\_inc\\**\\*, Application\\Diagnostics\\_src\\**\\*, Application\\Diagnostics\\_inc\\**\\*, Application\\Calibrations\\_src\\**\\* ", name: 'DownloadTools'
+                    }
+                }
+            }
+            
+        }
+		
+		
+        stage('Tests'){
+            parallel{
+                stage("CoverityTest"){
+                    agent{
+                        label 'Slave_1'
+                    }
+                    steps{
+                        ws("${env.WorkspacePath2Use}"){
+                            script{
+                                sleep 10
+                                if (fileExists("${COV_iDir}")){
+                                    dir("${COV_iDir}"){
+                                        deleteDir()
+                                    }
+                                }
+								
+                                withCoverityEnv('Coverity_2018_01') {
+                                    withEnv(['GHS_LMHOST=@nlnhsrk-ap108.europe.DelphiAuto.net:2011']){
+    						      //   withEnv(['set LM_LICENSE_FILE=7582@uskoaa17.usinkok.northamerica.delphiauto.net;7580@kswlic01.delcoelect.com']){
+        						        def covHome = tool name: 'Coverity_2018_01', type: 'coverity'
+        						        dir("${PLASTIC_WORKSPACE}\\Make_Files"){
+        						            bat"python FCA_IRCM_Host_Build.py -model %VehicleModel% build -c"
+        						            bat "echo python FCA_IRCM_Host_Build.py -model %VehicleModel% -bypass_report_gen -model %VehicleModel% build -hbuild > cov_build.bat"
+        						            bat"cov-build --dir \"${COV_iDir}\" cov_build.bat"
+        					                bat"cov-analyze --dir \"${COV_iDir}\" --security --concurrency --enable-fnptr --enable-constraint-fpp --enable-virtual --checker-option DEADCODE:no_dead_default:true --checker-option RESOURCE_LEAK:allow_main:true --strip-path /6_FCA/DT_CI/FCA_Plastic_DT --paths 70000"
+        					                //bat"cov-analyze --dir \"${COV_iDir}\" --security --concurrency --enable-fnptr --enable-virtual --enable-constraint-fpp --checker-option DEADCODE:no_dead_default:true -en ALLOC_FREE_MISMATCH --checker-option STACK_USE:max_total_use_bytes:6144 -en DC.STRING_BUFFER -en INCOMPATIBLE_CAST -en STACK_USE -en USER_POINTER -en DIVIDE_BY_ZERO --checker-option RESOURCE_LEAK:allow_main:true --strip-path /6_FCA/ --paths 50000"
+        						            bat"cov-commit-defects --dir \"${COV_iDir}\" --stream \"${COV_STREAM}\" --host \"${COVERITY_SERVER}\" --user ${COV_USER} --password ${COVERITY_PASSPHRASE} --preview-report \"${COV_iDir}\"\\cov_preview_report.json"
+											
+											no_of_issues = bat returnStatus: true,returnStdout: false, script: "java -classpath \"${jar_new_issues}\" -jar \"${jar_new_issues}\\GetNewIssues.jar\" -I \"${COV_iDir}\\cov_preview_report.json\""
+											def scmTrigger = false
+											def causes = currentBuild.rawBuild.getCauses()
+											for(cause in causes) {
+												if(cause.properties.shortDescription =~ 'Started by an SCM change')
+												{
+													scmTrigger = true
+													break
+												}
+											}
+											causes = null
+											cause = null
+											
+											//Commit only when there is issue found in SCM Trigger and always on Nightly Builds
+                    						if(scmTrigger == true && no_of_issues == 0){
+                                                println "Coverity: There are no New Issues found in this scmTrigger"
+                                            }
+											else
+                                            {
+                                              // This will run during Manual Trigger, Nightly Build and if issues found in SCM Trigger
+                                                "cov-commit-defects --dir \"${COV_iDir}\" --stream \"${COV_STREAM}\" --host \"${COVERITY_SERVER}\" --user comitter --password comitter"
+											}
+
+        						            coverityResults connectInstance: 'Coverity_2017', connectView: 'New Outstanding Defects Today', projectId: "${COV_STREAM}_", unstable: true
+											dir("${PYTHON_LIBS_FOLDER}\\Coverity_Reporter"){
+                                               bat'python Coverity_Reporter.py -u  sid_actsfy_sw -p Leejol33 -cprj 10029627_MY19_FCA_IRCM_HOST -csu http://coverity.northamerica.delphiauto.net:8080/api/viewContents/'
+                                               archiveArtifacts '*.html'
+                                            }
+        						        }
+                        	        }
+    					        } 
+                            } 
+                        }
+                    }
+                }
+                stage("QAC"){
+                    agent{
+                        label 'Slave_1'
+                    }
+                    steps{
+                        ws("${env.WorkspacePath2Use}\\${PLASTIC_MAIN}"){
+                            build job: 'QAC', parameters: [string(name: 'Workspace2Use', value: "${env.WorkspacePath2Use}\\${PLASTIC_MAIN}"), string(name: 'VehicleModel', value: "${env.VehicleModel}")]
+
+                            dir("Tools\\Python_Reuse_Scripts\\Jenkins_Job_Reader"){
+					            bat'python Jenkins_Job_Reader.py -u sid_actsfy_sw -p Leejol33 -jurl  http://hp2ua04411c0.northamerica.delphiauto.net:8080/view/FCA/job/FCA_HOST_%VehicleModel%/job/QAC/'
+					            
+                                archiveArtifacts '*.html'
+                            }
+                        }
+                    }
+                }
+                
+                stage("Hardware_Tests"){
+                    agent{
+                        label "FCA_ECU"
+                    }
+                    steps{
+                        script{
+                            build job: 'Reset_FCA_ECU', propagate: true, wait: true
+
+                            ECU_WORKSPACE = "${env.WorkspacePath2Use}_ECU"
+                            ws(ECU_WORKSPACE){
+                                temp_var = bat returnStatus: true, returnStdout: false, script: 'taskkill /im CANw64.exe /t'
+                                temp_var = bat returnStatus: true, returnStdout: false, script: 'taskkill /im CANoe32.exe /t'
+                                sleep 3
+                                deleteDir()
+                                sleep 10
+                                unstash name:'CompiledFiles'
+				                unstash name:'DownloadTools'
+				                dir("Tools\\Python_Scripts\\CS+"){
+				                    withEnv(['PATH=C:\\Python27;C:\\Windows\\system32']) {
+				                        bat "python change_config.py CS_Settings.ini run_forever 1"
+				                    }
+				                }
+				                
+								
+								
+				                dir("Tools\\Python_Scripts\\Integration_Check"){
+				                    withEnv(['PATH=C:\\Python27;C:\\Windows\\system32']) {
+				                        bat "python Integration_Ready_Check.py -model %VehicleModel% -a -u sid_actsfy_sw -c Leejol33 -jenkins -i AEX-12851"
+				                    }
+				                }
+				                dir("Tools\\Python_Scripts\\CAN_Tests"){
+				                    withEnv(['PATH=C:\\Python27;C:\\Windows\\system32']) {
+				                        bat "python Run_CAN_Tests.py"
+				                        echo "Run CAN Test here."
+				                    }
+                                }
+                            }
+                        }
+                    }
+                    post{
+                        always{
+                            dir("${ECU_WORKSPACE}"){
+                                //plot csvFileName: 'plot-8a85bc21-7a4b-47a1-9a30-072e0978e68e.csv', exclZero: false, group: 'Statistics', keepRecords: false, logarithmic: false, numBuilds: '30', style: 'line', title: 'Hardware Statistics', useDescr: false, xmlSeries: [[file: "_Build\\${env.VehicleModel}\\Gen\\Statistics_Report.html", nodeType: 'NODESET', url: '', xpath: '//PlotReport[1]/*']], yaxis: '', yaxisMaximum: '', yaxisMinimum: ''
+                                archiveArtifacts "_Build//${env.VehicleModel}//Gen//**//*"
+                                junit allowEmptyResults: false, testResults: "_Build/${env.VehicleModel}/Gen/**/*.xml,"
+                                junit allowEmptyResults: false, testResults: "Tools/Python_Scripts/CS+/Reports/**/*.xml,"
+                                junit allowEmptyResults: false, testResults: "Tools/Python_Scripts/CAN_Tests/**/*.xml,"
+                                stash includes: "_Build/${env.VehicleModel}/Gen/**/*.xml, Tools/Python_Scripts/CS+/Reports/**/*.xml, Tools/Python_Scripts/CAN_Tests/**/*.xml", name: 'HardwareTestResults'
+                                //plot csvFileName: 'plot-2699afc7-eb3e-4846-90d0-1156f3a29c8c.csv', xmlSeries: [[file: '${ECU_WORKSPACE}\\_Build\\${env.VehicleModel}\\Gen\\Statistics_Report.html', nodeType: 'NODESET', url: '', xpath: '//PlotReport[1]/*']], csvSeries: [[displayTableFlag: false, exclusionValues: '', file: '', inclusionFlag: 'OFF', url: '']], propertiesSeries: [[file: '', label: '']],
+                                //                    exclZero: false, group: 'Statistics', keepRecords: false, logarithmic: false, numBuilds: '30', 
+                                //                    style: 'line', title: 'ECU Usage Statistics',  useDescr: false, yaxis: 'Percentage', yaxisMaximum: '', yaxisMinimum: ''
+                                step([$class: 'hudson.plugins.plotpipeline.PlotBuilder', csvFileName: 'plot-165809782.csv', exclZero: false, group: 'Statistics', keepRecords: false, logarithmic: false, numBuilds: '30', style: 'line', title: 'Resource Usage', useDescr: false, xmlSeries: [[file: "_Build\\${env.VehicleModel}\\Gen\\Statistics_Report.html", nodeType: 'NODESET', url: '', xpath: '//PlotReport[1]/*']], yaxis: '', yaxisMaximum: '', yaxisMinimum: ''])
+				            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage("ReportToJira"){
+            steps{
+                node("${COMPILE_NODE}"){
+                    script{
+                        JIRA_REPORT_PATH = "${env.WorkspacePath2Use}\\${PLASTIC_MAIN}"
+                        ws("${JIRA_REPORT_PATH}"){
+                            dir('JUnitReports'){
+                                //bat "dir"
+                                //deleteDir()
+                                //bat "dir"
+                                //unstash name: 'HardwareTestResults'
+                                //build job: 'JiraTestReporter', parameters: [string(name: 'Workspace2Use', value: "${JIRA_REPORT_PATH}")], propagate: false
+                            }
+                            dir('JUnitReports1'){
+                                //deleteDir()
+                            }
+                        }
+                    }
+                }
+                
+            }
+        }
+    } 
+    post{
+        always{
+            warnings canResolveRelativePaths: false, categoriesPattern: '', consoleParsers: [[parserName: 'GHS_Aptiv_Custom']], defaultEncoding: '', excludePattern: '', healthy: '', includePattern: '', messagesPattern: '', unHealthy: '', usePreviousBuildAsReference: true
+        }
+    }
+}

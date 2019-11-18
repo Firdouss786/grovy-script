@@ -1,0 +1,85 @@
+pipeline {
+    agent {
+      label "master"
+    }
+    
+    environment {
+        COMPILE_NODE = "DAT2_ADAS_ECU"
+        ECU_NODE = "DAT2_ADAS_ECU"
+        COVERITY_NODE = "DAT2_ADAS_ECU"
+        QAC_NODE = "DAT2_ADAS_ECU"
+	    VECTOR_NODE = "DAT2_ADAS_ECU"
+	    BUILD_MANAGER = 'vijaykumar.essam@aptiv.com'
+        PROJECT_TECH_LEAD = 'vijaykumar.essam@aptiv.com'
+        PLASTIC_PROJECT_NAME = '10031600_MY21_Ford_DAT2_ADAS_HOST'
+        COVERITY_PROJECT_NAME = '10031600_MY21_Ford_DAT2_ADAS_HOST'
+        JIRA_PROJECT_KEY = 'APS'
+        END_MODEL = 'P702'
+        PLASTIC_SERVER = 'plasticscm_prod1.delphiauto.net:8087'
+        PLASTIC_MAIN = "DAT2_ADAS_Aurix_CI_StageD"
+        PLASTIC_WORKSPACE = "${env.WorkspacePath2Use}\\${PLASTIC_MAIN}"
+        
+    	COVERITY_SERVER = 'coverity.northamerica.delphiauto.net'
+	    COV_PORT = "8087"
+	    COV_STREAM = "10031600_MY21_Ford_DAT2_ADAS_HOST_P702"
+	    COVERITY_PASSPHRASE = "comitter"
+    	COV_USER			= "comitter"
+    	
+        COV_iDir = "${env.WorkspacePath2Use}\\cov-idir"
+        COMPILE_PATH = "${PLASTIC_WORKSPACE}\\build_files\\aptiv_specific\\python_scripts"
+        LICENCE = "LM_LICENSE_FILE=7582@uskoaa17.usinkok.northamerica.delphiauto.net;7580@kswlic01.delcoelect.com"
+        GLOBAL_TOOL_PATH = "PATH=C:\\Python27;C:\\Program Files\\Coverity\\Coverity_8.5\\bin;c:\\perl64\\bin;C:\\Windows\\system32"
+        CLOC_PATH = "PATH=C:\\Program Files\\Cloc;C:\\Windows\\System32"
+        PLASTIC_PATH = "PATH=C:\\Program Files\\PlasticSCM5\\client;C:\\Windows\\system32"
+        COMMON_REPORT_GEN_PATH = "${PLASTIC_WORKSPACE}\\build_files\\aptiv_specific\\dynamic_reports\\${END_MODEL}"
+        PYTHON_LIBS_FOLDER = "${PLASTIC_WORKSPACE}\\build_files\\shared\\python_scripts\\as_python_libs"
+        jar_new_issues = "C:\\Program Files (x86)\\Jenkins\\Softwares\\GetNewCoverityIssues"
+    }
+    
+    stages {
+        stage("GetLatestCode"){
+            steps{
+                node("${COMPILE_NODE}"){
+                    ws(env.WorkspacePath2Use){
+                        script{
+                            if (fileExists("${PLASTIC_MAIN}\\.plastic\\plastic.workspace")){
+                                dir("${PLASTIC_MAIN}"){
+                                    withEnv(["${PLASTIC_PATH}"]){
+                                    bat "cm unco --all"
+                                    }
+                                }
+                            }
+                           cm branch:"${env.DevelopmentBranch}",repository: "${PLASTIC_PROJECT_NAME}", server: "${PLASTIC_SERVER}",useUpdate: true, useMultipleWorkspaces: true, workspaceName: "${PLASTIC_MAIN}"
+                        }
+		            }
+                }
+            }
+        }
+        
+        stage("CodeCompilation"){
+            steps {
+                node("${COMPILE_NODE}") {
+                    ws("${env.WorkspacePath2Use}\\${PLASTIC_MAIN}"){
+                        script{
+
+                            dir("${COMPILE_PATH}"){
+                                withEnv(["${LICENCE}", "${GLOBAL_TOOL_PATH}"]) {
+                        
+                                             bat 'python aptiv_host_build.py -jenkins build -lib A_APP'
+                                             COMPILE_BLOCK_FLAG = "This build was successfully compiled with library A_APP "
+									    echo "${COMPILE_BLOCK_FLAG}"
+                                }
+                            }
+                            withEnv(["${CLOC_PATH}"]) {
+                                bat "cloc-1.76.exe  --by-file --include-lang=C,C++,\"C/C++ Header\",Assembly --xml --out=cloc.xml ./build_files/aptiv_specific/output/P702/A_APP ./build_files/aptiv_specific/output/P702/AS_FW ./aptiv_sw/integration/swc/ford_features"
+                                //bat "xsltproc \"C:\\Program Files\\Cloc\\cloc2sloccount.xsl\" cloc.xml > sloccount.sc"
+                                //sloccountPublish encoding: '', ignoreBuildFailure: true, pattern: 'sloccount.sc'
+                                sloccountPublish encoding: '', ignoreBuildFailure: true, pattern: 'cloc.xml'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+      
+      
