@@ -1,0 +1,39 @@
+node {
+   def mvnHome
+   stage('code fetch') { // for display purposes
+      // Get some code from a GitHub repository
+      git 'https://github.com/Firdouss786/gameoflife'
+      // Get the Maven tool.
+      // ** NOTE: This 'M3' Maven tool must be configured
+      // **       in the global configuration.           
+      mvnHome = tool 'mvn'
+      ignoreFailures = true
+      //jdkHome = tool 'jdk_Home'
+   }
+   stage('Build') {
+      // Run the maven build
+      withEnv(["MVN_HOME=$mvnHome"]) {
+         if (isUnix()) {
+            sh '"$MVN_HOME/mvn" -Dmaven.test.failure.ignore clean compile package'
+            //sh '"$JDK_HOME" -Dmaven.test.failure.ignore compile package'
+         } else {
+            bat(/"$MVN_HOME\bin\mvn" compile -Dmaven.test.failure.ignore/)
+            //bat(/"$MVN_HOME\mvn" -X clean -rf :gameoflife-core -Dmaven.test.failure.ignore/)
+         }
+      }
+	  }
+	stage('Unit test') {
+		//ignoreFailures = true
+		bat(/"$MVN_HOME\mvn" test/)
+      junit '**/target/surefire-reports/TEST-*.xml'
+      archiveArtifacts 'target/'
+   }
+   
+	stage('Sonar Qube') {  
+       bat(/"$MVN_HOME\mvn" sonar:sonar/)
+       //mail bcc: '', body: 'success', cc: 'Firdous.shaikh@ltts.com', from: 'Firdous.shaikh@ltts.com', replyTo: 'Firdous.shaikh@ltts.com', subject: 'mail notification', to: 'Firdous.shaikh@ltts.com'
+   }
+	stage('Email Notification') {  
+       mail bcc: '', body: 'success', cc: 'Firdous.shaikh@ltts.com', from: 'Firdous.shaikh@ltts.com', replyTo: 'Firdous.shaikh@ltts.com', subject: 'mail notification', to: 'Firdous.shaikh@ltts.com'
+   }
+   }
